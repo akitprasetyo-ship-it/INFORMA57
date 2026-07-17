@@ -927,7 +927,17 @@ function renderUnifiedSales(list){
 }
 
 function renderTopSales(rows){
-  const merged = sortSalesRanking(mergeSalesByName(rows));
+  let merged = mergeSalesByName(rows);
+
+  // Hanya tampilkan sales yang punya nilai Sales > 0
+  merged = merged.filter(p => 
+    (p.Sales !== null && p.Sales > 0) ||
+    (p.FurniPro !== null && p.FurniPro > 0) ||
+    (p.Comser !== null && p.Comser > 0)
+  );
+
+  merged = sortSalesRanking(merged);
+
   renderUnifiedSales(merged);
   document.getElementById("badgeSales").textContent = merged.length + " sales";
 }
