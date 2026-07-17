@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Update Store</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =====================================================
+     ============  KONFIGURASI GOOGLE SHEET  ============
+     Ganti SHEET_ID dengan ID Google Sheet kamu.
+     Cara ambil ID: dari URL sheet
+     https://docs.google.com/spreadsheets/d/►ID-NYA-DI-SINI◄/edit
+     Sheet HARUS berstatus "Anyone with the link can view".
+     Lihat README.md untuk struktur tab yang dibutuhkan.
+     ===================================================== */
+
+  :root{
+    --navy-950:#ffffff;
+    --navy-900:#ffffff;
+    --navy-800:#ffffff;
+    --navy-700:#eef1f7;
+    --panel-border:#e2e6ef;
+    --blue-500:#2f5fd9;
+    --blue-400:#3f5fc4;
+    --cyan-400:#3b7fb0;
+    --green-400:#188053;
+    --amber-400:#a86214;
+    --red-400:#c0392b;
+    --text-hi:#141a2b;
+    --text-mid:#667085;
+    --text-low:#98a2b3;
+    --font-display:'Inter', sans-serif;
+    --font-num:'Inter', sans-serif;
+    --font-body:'Inter', sans-serif;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+
+  html,body{
+    height:100%;
+    background:var(--navy-950);
+    color:var(--text-hi);
+    font-family:var(--font-body);
+    overflow:hidden;
+  }
+
+  .num, .fig-value, .clock, .ring-pct span, .badge, .item-value, .dept-value, .lb-value, .sync-info{
+    font-variant-numeric:tabular-nums;
+    letter-spacing:0;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+  }
+
+  .app{
+    display:flex;
+    flex-direction:column;
+    height:100vh;
+    padding:22px 32px 26px;
+  }
+
+  /* ---------------- HEADER ---------------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding-bottom:16px;
+    border-bottom:1px solid var(--panel-border);
+    margin-bottom:20px;
+    flex-shrink:0;
+  }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .brand-mark{
+    width:42px; height:42px; border-radius:10px;
+    background:var(--blue-500);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700; font-size:16px; color:#f4f7ff;
+  }
+  .brand-text .store-name{
+    font-family:var(--font-display); font-weight:700; font-size:21px; letter-spacing:-.2px;
+  }
+  .brand-text .store-sub{
+    font-size:12px; color:var(--text-mid); letter-spacing:1.5px; text-transform:uppercase; margin-top:2px;
+  }
+
+  .status-cluster{ display:flex; align-items:center; gap:22px; }
+  .live-pill{
+    display:flex; align-items:center; gap:8px;
+    background:#eaf6ef; border:1px solid #bfe3cc;
+    padding:7px 14px 7px 10px; border-radius:999px;
+  }
+  .live-dot{
+    width:8px; height:8px; border-radius:50%; background:var(--green-400);
+    box-shadow:0 0 0 0 rgba(46,168,111,.4);
+    animation:pulse-dot 2.2s infinite;
+  }
+  @keyframes pulse-dot{
+    0%{ box-shadow:0 0 0 0 rgba(46,168,111,.35);}
+    70%{ box-shadow:0 0 0 6px rgba(46,168,111,0);}
+    100%{ box-shadow:0 0 0 0 rgba(46,168,111,0);}
+  }
+  .live-pill span{ font-size:12px; font-weight:700; letter-spacing:1.5px; color:var(--green-400); }
+  .clock{
+    font-family:var(--font-num); font-size:20px; font-weight:600; color:var(--text-hi); letter-spacing:1px;
+    min-width:150px; text-align:right;
+  }
+  .clock .date{
+    display:block; font-family:var(--font-body); font-size:11px; font-weight:500; color:var(--text-mid);
+    text-align:right; letter-spacing:.5px; margin-top:2px;
+  }
+
+  /* ---------------- SLIDES ---------------- */
+  .stage{ flex:1; position:relative; min-height:0; }
+  .slide{
+    position:absolute; inset:0;
+    opacity:0; visibility:hidden; transform:translateY(14px);
+    transition:opacity .6s ease, transform .6s ease, visibility .6s;
+    display:flex; flex-direction:column; min-height:0;
+  }
+  .slide.active{ opacity:1; visibility:visible; transform:translateY(0); }
+
+  .slide-title{
+    font-family:var(--font-display); font-weight:600; font-size:13px;
+    letter-spacing:2.5px; text-transform:uppercase; color:var(--blue-400);
+    margin-bottom:14px; display:flex; align-items:center; gap:10px; flex-shrink:0;
+  }
+  .slide-title::after{ content:''; flex:1; height:1px; background:linear-gradient(90deg, var(--panel-border), transparent); }
+
+  .panel{
+    background:var(--navy-800);
+    border:1px solid var(--panel-border);
+    border-radius:16px;
+    padding:20px 22px;
+    position:relative;
+    overflow:hidden;
+    min-height:0;
+    box-shadow:0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.05);
+  }
+  .panel::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:var(--blue-500);
+    opacity:.55;
+  }
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;
+  }
+  .panel-head h3{
+    font-family:var(--font-display); font-size:14px; font-weight:600; color:var(--text-hi); letter-spacing:.3px;
+  }
+  .panel-head .badge{
+    font-family:var(--font-num); font-size:11px; color:var(--text-mid);
+    background:var(--navy-700); padding:3px 9px; border-radius:6px; border:1px solid var(--panel-border);
+  }
+
+  /* ---------- Slide 1 grid ---------- */
+  #slide1 .grid{
+    flex:1; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto 1fr;
+    gap:16px; min-height:0;
+  }
+  .target-row{ display:contents; }
+
+  .ring-panel{ display:flex; align-items:center; gap:20px; }
+  .ring-wrap{ position:relative; width:118px; height:118px; flex-shrink:0; }
+  .ring-wrap svg{ transform:rotate(-90deg); }
+  .ring-track{ fill:none; stroke:var(--panel-border); stroke-width:10; }
+  .ring-fill{ fill:none; stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 1s ease, stroke .4s; }
+  .ring-pct{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    flex-direction:column;
+    font-family:var(--font-num); font-weight:700; font-size:22px;
+  }
+  .ring-pct small{ font-family:var(--font-body); font-size:9px; color:var(--text-mid); font-weight:500; letter-spacing:1px; }
+
+  .ring-figures{ flex:1; }
+  .fig-row{ display:flex; justify-content:space-between; align-items:baseline; padding:6px 0; border-bottom:1px dashed var(--panel-border); }
+  .fig-row:last-child{ border-bottom:none; }
+  .fig-label{ font-size:12px; color:var(--text-mid); letter-spacing:.3px; }
+  .fig-value{ font-family:var(--font-num); font-weight:700; font-size:16px; color:var(--text-hi); }
+  .fig-value.pos{ color:var(--green-400); }
+  .fig-value.neg{ color:var(--red-400); }
+
+  /* Top Sales — list gabungan dengan auto-scroll vertikal */
+  .usales-wrap{ flex:1; overflow:hidden; position:relative; min-height:0; mask-image:linear-gradient(180deg, transparent, #000 14px, #000 calc(100% - 14px), transparent); }
+  .usales-track{ display:flex; flex-direction:column; gap:8px; will-change:transform; }
+  @keyframes usalesScroll{
+    from{ transform:translateY(0); }
+    to{ transform:translateY(var(--scroll-distance, 0)); }
+  }
+  .usales-item{
+    display:flex; align-items:center; gap:12px;
+    background:var(--navy-700); border:1px solid var(--panel-border); border-radius:10px; padding:9px 12px;
+    flex-shrink:0;
+  }
+  .usales-info{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .usales-name{ font-size:12.5px; font-weight:700; color:var(--text-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .usales-stats{ display:flex; align-items:center; gap:7px; flex-wrap:wrap; font-size:11px; }
+  .usales-stats .stat{ display:inline-flex; align-items:baseline; gap:4px; white-space:nowrap; }
+  .usales-stats .stat-label{ color:var(--text-mid); font-weight:500; }
+  .usales-stats .stat-value{ font-family:var(--font-num); color:var(--blue-400); font-weight:700; }
+  .usales-stats .stat-value.dim{ color:var(--text-low); font-weight:500; }
+  .usales-stats .sep{ color:var(--panel-border); }
+
+  .rank-chip{
+    width:24px; height:24px; border-radius:7px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-num); font-size:11px; font-weight:700;
+    background:var(--navy-800); color:var(--text-mid); border:1px solid var(--panel-border);
+  }
+  .rank-chip.r1{ background:#caa14a; color:#20170a; border:none; }
+  .rank-chip.r2{ background:#a7afc2; color:#1a2030; border:none; }
+  .rank-chip.r3{ background:#b0765a; color:#1f120b; border:none; }
+
+  /* Top Dept bars */
+  .dept-list{ flex:1; display:flex; flex-direction:column; gap:10px; justify-content:center; }
+  .dept-row{ display:flex; align-items:center; gap:12px; }
+  .dept-name{ width:150px; flex-shrink:0; font-size:12.5px; color:var(--text-hi); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .dept-bar-track{ flex:1; height:14px; background:var(--navy-700); border-radius:8px; overflow:hidden; }
+  .dept-bar-fill{ height:100%; border-radius:8px; background:var(--blue-500); transition:width 1s ease; }
+  .dept-value{ width:110px; text-align:right; font-family:var(--font-num); font-size:12px; color:var(--text-mid); flex-shrink:0; }
+
+  /* ---------- Slide 2 leaderboards ---------- */
+  #slide2 .grid{ flex:1; display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; min-height:0; }
+  .lb-panel{ display:flex; flex-direction:column; min-height:0; }
+  .lb-list{ display:flex; flex-direction:column; gap:9px; overflow:hidden; flex:1; }
+  .lb-item{
+    display:flex; align-items:center; gap:12px;
+    background:var(--navy-700); border:1px solid var(--panel-border); border-radius:10px; padding:10px 12px;
+  }
+  .lb-item.top1{ border-color:#caa14a55; background:var(--navy-700); }
+  .lb-rank{
+    width:28px; height:28px; border-radius:8px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-num); font-size:13px; font-weight:700;
+    background:var(--navy-800); color:var(--text-mid); border:1px solid var(--panel-border);
+  }
+  .lb-rank.r1{ background:#caa14a; color:#20170a; border:none; }
+  .lb-rank.r2{ background:#a7afc2; color:#1a2030; border:none; }
+  .lb-rank.r3{ background:#b0765a; color:#1f120b; border:none; }
+  .lb-info{ flex:1; min-width:0; }
+  .lb-name{ font-size:13.5px; font-weight:700; color:var(--text-hi); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .lb-value{ font-family:var(--font-num); font-size:12px; color:var(--green-400); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+  .empty-state{ color:var(--text-low); font-size:12px; padding:12px 0; text-align:center; }
+
+  /* ---------------- FOOTER ---------------- */
+  .footbar{
+    flex-shrink:0; margin-top:18px; padding-top:14px; border-top:1px solid var(--panel-border);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .dots{ display:flex; gap:7px; }
+  .dot{ width:7px; height:7px; border-radius:50%; background:var(--panel-border); transition:background .3s, width .3s; }
+  .dot.active{ background:var(--blue-400); width:22px; border-radius:4px; }
+  .sync-info{ font-size:11px; color:var(--text-low); font-family:var(--font-num); letter-spacing:.3px; }
+  .sync-info b{ color:var(--text-mid); }
+
+  ::-webkit-scrollbar{ display:none; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="topbar">
+    <div class="brand">
+      <div class="brand-mark">LU</div>
+      <div class="brand-text">
+        <div class="store-name" id="storeName">Live Update Store</div>
+        <div class="store-sub">Dashboard Penjualan Real-time</div>
+      </div>
+    </div>
+    <div class="status-cluster">
+      <div class="live-pill"><div class="live-dot"></div><span>LIVE</span></div>
+      <div class="clock">
+        <span id="clockTime">--:--:--</span>
+        <span class="date" id="clockDate">-- ------- ----</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE -->
+  <div class="stage">
+
+    <!-- SLIDE 1 -->
+    <div class="slide active" id="slide1">
+      <div class="slide-title">Performa Hari Ini</div>
+      <div class="grid">
+
+        <div class="panel ring-panel">
+          <div class="ring-wrap">
+            <svg width="118" height="118" viewBox="0 0 118 118">
+              <circle class="ring-track" cx="59" cy="59" r="50"></circle>
+              <circle class="ring-fill" id="ringBulan" cx="59" cy="59" r="50" stroke="#2f5fd9"
+                stroke-dasharray="314" stroke-dashoffset="314"></circle>
+            </svg>
+            <div class="ring-pct"><span id="pctBulan">0%</span><small>TERCAPAI</small></div>
+          </div>
+          <div class="ring-figures">
+            <div class="panel-head" style="margin-bottom:8px;"><h3>Target &amp; Pencapaian Bulan Ini</h3></div>
+            <div class="fig-row"><span class="fig-label">Target Bulan</span><span class="fig-value" id="targetBulan">Rp 0</span></div>
+            <div class="fig-row"><span class="fig-label">Pencapaian</span><span class="fig-value pos" id="pencapaianBulan">Rp 0</span></div>
+            <div class="fig-row"><span class="fig-label">Sisa Target</span><span class="fig-value" id="sisaBulan">Rp 0</span></div>
+          </div>
+        </div>
+
+        <div class="panel ring-panel">
+          <div class="ring-wrap">
+            <svg width="118" height="118" viewBox="0 0 118 118">
+              <circle class="ring-track" cx="59" cy="59" r="50"></circle>
+              <circle class="ring-fill" id="ringHari" cx="59" cy="59" r="50" stroke="#3b93c9"
+                stroke-dasharray="314" stroke-dashoffset="314"></circle>
+            </svg>
+            <div class="ring-pct"><span id="pctHari">0%</span><small>TERCAPAI</small></div>
+          </div>
+          <div class="ring-figures">
+            <div class="panel-head" style="margin-bottom:8px;"><h3>Target Hari Ini vs Actual</h3></div>
+            <div class="fig-row"><span class="fig-label">Target Hari Ini</span><span class="fig-value" id="targetHari">Rp 0</span></div>
+            <div class="fig-row"><span class="fig-label">Actual Hari Ini</span><span class="fig-value pos" id="actualHari">Rp 0</span></div>
+            <div class="fig-row"><span class="fig-label">Selisih</span><span class="fig-value" id="selisihHari">Rp 0</span></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Top Sales Hari Ini</h3><span class="badge" id="badgeSales">--</span></div>
+          <div class="usales-wrap" id="salesWrap">
+            <div class="usales-track" id="salesTrack"><div class="empty-state">Memuat data…</div></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Top Dept. Hari Ini</h3><span class="badge" id="badgeDept">--</span></div>
+          <div class="dept-list" id="listDept"><div class="empty-state">Memuat data…</div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SLIDE 2 -->
+    <div class="slide" id="slide2">
+      <div class="slide-title">Best Performer Bulan Ini</div>
+      <div class="grid">
+
+        <div class="panel lb-panel">
+          <div class="panel-head"><h3>Best Sales Bulan Ini</h3><span class="badge" id="badgeBestSales">--</span></div>
+          <div class="lb-list" id="listBestSales"><div class="empty-state">Memuat data…</div></div>
+        </div>
+
+        <div class="panel lb-panel">
+          <div class="panel-head"><h3>Best Furni Pro Bulan Ini</h3><span class="badge" id="badgeBestFurniPro">--</span></div>
+          <div class="lb-list" id="listBestFurniPro"><div class="empty-state">Memuat data…</div></div>
+        </div>
+
+        <div class="panel lb-panel">
+          <div class="panel-head"><h3>Best Departemen Bulan Ini</h3><span class="badge" id="badgeBestDept">--</span></div>
+          <div class="lb-list" id="listBestDept"><div class="empty-state">Memuat data…</div></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footbar">
+    <div class="dots">
+      <div class="dot active" data-slide="0"></div>
+      <div class="dot" data-slide="1"></div>
+    </div>
+    <div class="sync-info">Update terakhir: <b id="lastSync">--:--:--</b> · Refresh otomatis tiap <b>30 detik</b></div>
+  </div>
+
+</div>
+
+<script>
+/* =====================================================================
+   KONFIGURASI — edit bagian ini sesuai Google Sheet kamu
+   ===================================================================== */
+const CONFIG = {
+  // ID Google Sheet (ambil dari URL, di antara /d/ dan /edit)
+  SHEET_ID: "1yuqItiZE0Mbr6GLPU0RXx1Adb8IGzN8wyGqZvdPtK0k",
+
+  // Nama tab (harus sama persis dengan nama tab di Google Sheet)
+  TABS: {
+    summary:   "Summary",
+    topSales:  "TopSales",
+    topDept:   "TopDept",
+    bestBulan: "BestBulanan"
+  },
+
+  REFRESH_MS: 30000,   // refresh data tiap 30 detik
+  SLIDE_MS:   12000,   // ganti slide tiap 12 detik
+  MAX_ROWS:   5,        // maksimal baris ditampilkan per list
+
+  // Insentif Furni Pro dihitung dari QUANTITY (pcs), bukan Rupiah.
+  // Sistemnya FLAT sesuai tier yang dicapai: begitu total qty masuk
+  // suatu tier, SEMUA pcs dihitung dengan tarif tier itu.
+  // Contoh: qty 120 pcs -> masuk tier "101+" -> 120 x Rp20.000 = Rp2.400.000
+  FURNI_PRO_TIERS: [
+    { max: 50,       rate: 10000 },  // 1–50 pcs
+    { max: 100,      rate: 15000 },  // 51–100 pcs
+    { max: Infinity, rate: 20000 }   // 101 pcs ke atas
+  ]
+};
+
+/* =====================================================================
+   UTIL
+   ===================================================================== */
+function gvizUrl(tabName){
+  return `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}`;
+}
+
+// Parser CSV sederhana yang tetap menangani koma di dalam tanda kutip
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else inQuotes = false;
+      } else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ','){ row.push(field); field=""; }
+      else if(c === '\n' || c === '\r'){
+        if(field !== "" || row.length){ row.push(field); rows.push(row); row=[]; field=""; }
+        if(c === '\r' && text[i+1] === '\n') i++;
+      } else field += c;
+    }
+  }
+  if(field !== "" || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function rowsToObjects(rows){
+  if(!rows.length) return [];
+  const headers = rows[0].map(h => h.trim());
+  return rows.slice(1)
+    .filter(r => r.some(c => c && c.trim() !== ""))
+    .map(r => {
+      const obj = {};
+      headers.forEach((h,i) => obj[h] = (r[i] ?? "").trim());
+      return obj;
+    });
+}
+
+async function fetchTab(tabName){
+  const res = await fetch(gvizUrl(tabName) + `&_=${Date.now()}`);
+  if(!res.ok) throw new Error(`Gagal memuat tab "${tabName}" (${res.status})`);
+  const text = await res.text();
+  return rowsToObjects(parseCSV(text));
+}
+
+function toNumber(v){
+  if(v === undefined || v === null) return 0;
+  let s = String(v).trim();
+  if(s === "") return 0;
+  s = s.replace(/[^0-9.,\-]/g, ""); // buang "Rp", spasi, dll
+  if(s.includes(",") && s.includes(".")){
+    // format "1,234,567.89" -> koma = pemisah ribuan
+    s = s.replace(/,/g, "");
+  } else if(s.includes(",") && !s.includes(".")){
+    const parts = s.split(",");
+    const lastLen = parts[parts.length - 1].length;
+    if(parts.length > 2 || lastLen === 3){
+      s = s.replace(/,/g, ""); // pemisah ribuan, mis. "1,234,567"
+    } else {
+      s = s.replace(",", "."); // koma desimal, mis. "1234,5"
+    }
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+
+// Normalisasi teks key: hilangkan spasi/simbol & lowercase, supaya
+// "Target Bulan", "target_bulan", "TARGETBULAN" semua dianggap sama.
+function normKey(s){
+  return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function formatRupiah(n){
+  return "Rp " + Math.round(n).toLocaleString("id-ID");
+}
+
+function formatPcs(n){
+  return Math.round(n).toLocaleString("id-ID") + " pcs";
+}
+
+// Insentif Furni Pro: flat sesuai tier yang dicapai (lihat CONFIG.FURNI_PRO_TIERS)
+function hitungInsentifFurniPro(qty){
+  const q = Math.max(0, Math.round(qty));
+  const tier = CONFIG.FURNI_PRO_TIERS.find(t => q <= t.max) || CONFIG.FURNI_PRO_TIERS[CONFIG.FURNI_PRO_TIERS.length - 1];
+  return q * tier.rate;
+}
+
+function initials(name){
+  return name.split(" ").filter(Boolean).slice(0,2).map(w => w[0].toUpperCase()).join("");
+}
+
+/* =====================================================================
+   RENDER: Summary (target & pencapaian)
+   ===================================================================== */
+function setRing(circleEl, pct){
+  const r = 50, C = 2 * Math.PI * r;
+  const clamped = Math.max(0, Math.min(100, pct));
+  circleEl.setAttribute("stroke-dasharray", C.toFixed(1));
+  circleEl.setAttribute("stroke-dashoffset", (C * (1 - clamped/100)).toFixed(1));
+  if(pct >= 100) circleEl.setAttribute("stroke", "#2ea86f");
+}
+
+function renderSummary(obj){
+  if(!obj.length) console.warn('[Live Update Store] Tab "Summary" kosong atau gagal dimuat — cek nama tab & isi sheet.');
+
+  const get = (key) => {
+    const target = normKey(key);
+    for(const row of obj){
+      const cols = Object.values(row);          // pakai posisi kolom, bukan nama header
+      if(normKey(cols[0]) === target) return cols[1] ?? "";
+    }
+    console.warn(`[Live Update Store] Key "${key}" tidak ditemukan di tab Summary. Baris yang ada:`, obj.map(r => Object.values(r)[0]));
+    return "";
+  };
+
+  const namaToko = get("NamaToko");
+  if(namaToko) document.getElementById("storeName").textContent = namaToko;
+
+  const targetBulan = toNumber(get("TargetBulan"));
+  const pencapaianBulan = toNumber(get("PencapaianBulan"));
+  const targetHari = toNumber(get("TargetHari"));
+  const actualHari = toNumber(get("ActualHari"));
+
+  const pctBulan = targetBulan > 0 ? (pencapaianBulan/targetBulan*100) : 0;
+  const pctHari = targetHari > 0 ? (actualHari/targetHari*100) : 0;
+
+  document.getElementById("targetBulan").textContent = formatRupiah(targetBulan);
+  document.getElementById("pencapaianBulan").textContent = formatRupiah(pencapaianBulan);
+  const sisaBulan = document.getElementById("sisaBulan");
+  const sisa = targetBulan - pencapaianBulan;
+  sisaBulan.textContent = formatRupiah(Math.abs(sisa));
+  sisaBulan.className = "fig-value " + (sisa <= 0 ? "pos" : "");
+  document.getElementById("pctBulan").textContent = pctBulan.toFixed(1) + "%";
+  setRing(document.getElementById("ringBulan"), pctBulan);
+
+  document.getElementById("targetHari").textContent = formatRupiah(targetHari);
+  document.getElementById("actualHari").textContent = formatRupiah(actualHari);
+  const selisihHari = document.getElementById("selisihHari");
+  const selisih = actualHari - targetHari;
+  selisihHari.textContent = (selisih >= 0 ? "+" : "-") + formatRupiah(Math.abs(selisih));
+  selisihHari.className = "fig-value " + (selisih >= 0 ? "pos" : "neg");
+  document.getElementById("pctHari").textContent = pctHari.toFixed(1) + "%";
+  setRing(document.getElementById("ringHari"), pctHari);
+}
+
+/* =====================================================================
+   RENDER: Top Sales Hari Ini — 1 list gabungan per nama sales
+   Format tiap baris: Nama Sales / Sales: | Furni Pro: | Comser:
+   Ranking diprioritaskan dari nilai Sales (turun), lalu Furni Pro, lalu Comser.
+   Menampilkan SEMUA entri yang masuk hari ini (bukan dibatasi), dengan
+   auto-scroll vertikal kalau isinya lebih panjang dari tinggi panel.
+   ===================================================================== */
+function mergeSalesByName(rows){
+  const map = new Map();
+  rows.forEach(r => {
+    const nama = (r.Nama || "").trim();
+    if(!nama) return;
+    const cat = normKey(r.Kategori);
+    if(!map.has(nama)) map.set(nama, { Nama: nama, Sales: null, FurniPro: null, Comser: null });
+    const entry = map.get(nama);
+    const val = toNumber(r.Nilai);
+    if(cat === normKey("Sales")) entry.Sales = val;
+    else if(cat === normKey("Furni Pro")) entry.FurniPro = val;
+    else if(cat === normKey("Comser")) entry.Comser = val;
+  });
+  return Array.from(map.values());
+}
+
+function sortSalesRanking(list){
+  return list.sort((a,b) => {
+    const as = a.Sales ?? -Infinity, bs = b.Sales ?? -Infinity;
+    if(bs !== as) return bs - as;
+    const af = a.FurniPro ?? -Infinity, bf = b.FurniPro ?? -Infinity;
+    if(bf !== af) return bf - af;
+    const ac = a.Comser ?? -Infinity, bc = b.Comser ?? -Infinity;
+    if(bc !== ac) return bc - ac;
+    return a.Nama.localeCompare(b.Nama);
+  });
+}
+
+function buildSalesRow(p, rank){
+  const rankClass = rank === 1 ? "r1" : rank === 2 ? "r2" : rank === 3 ? "r3" : "";
+  const salesTxt   = p.Sales    !== null ? formatRupiah(p.Sales) : "–";
+  const fpTxt      = p.FurniPro !== null ? formatPcs(p.FurniPro) : "–";
+  const comserTxt  = p.Comser   !== null ? formatRupiah(p.Comser) : "–";
+  const dim = (v) => v === null ? "dim" : "";
+  return `
+    <div class="usales-item">
+      <div class="rank-chip ${rankClass}">${rank}</div>
+      <div class="usales-info">
+        <div class="usales-name">${p.Nama}</div>
+        <div class="usales-stats">
+          <span class="stat"><span class="stat-label">Sales:</span><span class="stat-value ${dim(p.Sales)}">${salesTxt}</span></span>
+          <span class="sep">|</span>
+          <span class="stat"><span class="stat-label">Furni Pro:</span><span class="stat-value ${dim(p.FurniPro)}">${fpTxt}</span></span>
+          <span class="sep">|</span>
+          <span class="stat"><span class="stat-label">Comser:</span><span class="stat-value ${dim(p.Comser)}">${comserTxt}</span></span>
+        </div>
+      </div>
+    </div>`;
+}
+
+let salesScrollTimer = null;
+
+function renderUnifiedSales(list){
+  const wrap = document.getElementById("salesWrap");
+  const track = document.getElementById("salesTrack");
+
+  clearInterval(salesScrollTimer);
+  track.style.animation = "none";
+  track.style.transform = "translateY(0)";
+
+  if(!list.length){
+    track.innerHTML = '<div class="empty-state">Belum ada data</div>';
+    return;
+  }
+
+  const rowsHtml = list.map((p, idx) => buildSalesRow(p, idx + 1)).join("");
+  track.innerHTML = rowsHtml;
+
+  // Kasih waktu render dulu, lalu ukur tinggi konten vs tinggi wadah.
+  // Kalau lebih tinggi dari wadah -> gandakan konten & jalankan auto-scroll
+  // vertikal (dari atas ke bawah) dengan kecepatan konstan, loop terus-menerus.
+  requestAnimationFrame(() => {
+    const wrapH = wrap.clientHeight;
+    const singleSetH = track.scrollHeight;
+    if(singleSetH > wrapH){
+      track.innerHTML = rowsHtml + rowsHtml; // duplikasi supaya loop mulus
+      const SPEED_PX_PER_SEC = 28;
+      const gapPx = 8; // harus sama dengan `gap` di .usales-track
+      const distance = singleSetH + gapPx;
+      const duration = Math.max(10, distance / SPEED_PX_PER_SEC);
+      track.style.setProperty("--scroll-distance", `-${distance}px`);
+      track.style.animation = `usalesScroll ${duration}s linear infinite`;
+    }
+  });
+}
+
+function renderTopSales(rows){
+  const merged = sortSalesRanking(mergeSalesByName(rows));
+  renderUnifiedSales(merged);
+  document.getElementById("badgeSales").textContent = merged.length + " sales";
+}
+
+/* =====================================================================
+   RENDER: Top Dept Hari Ini
+   ===================================================================== */
+function renderTopDept(rows){
+  const el = document.getElementById("listDept");
+  const sorted = [...rows].sort((a,b) => toNumber(b.Nilai) - toNumber(a.Nilai)).slice(0, CONFIG.MAX_ROWS);
+  if(!sorted.length){ el.innerHTML = '<div class="empty-state">Belum ada data</div>'; return; }
+  const max = toNumber(sorted[0].Nilai) || 1;
+  el.innerHTML = sorted.map(r => {
+    const val = toNumber(r.Nilai);
+    const pct = Math.max(6, (val/max*100));
+    return `
+      <div class="dept-row">
+        <div class="dept-name">${r.Departemen || "-"}</div>
+        <div class="dept-bar-track"><div class="dept-bar-fill" style="width:${pct}%"></div></div>
+        <div class="dept-value">${formatRupiah(val)}</div>
+      </div>`;
+  }).join("");
+  document.getElementById("badgeDept").textContent = rows.length + " dept";
+}
+
+/* =====================================================================
+   RENDER: Best Bulanan (slide 2)
+   ===================================================================== */
+function renderLeaderboard(containerId, items, mode){
+  const el = document.getElementById(containerId);
+  if(!items.length){ el.innerHTML = '<div class="empty-state">Belum ada data</div>'; return; }
+  el.innerHTML = items.slice(0, CONFIG.MAX_ROWS).map((it, idx) => {
+    const rank = idx + 1;
+    const rankClass = rank === 1 ? "r1" : rank === 2 ? "r2" : rank === 3 ? "r3" : "";
+    let valueHtml;
+    if(mode === "furnipro"){
+      const qty = toNumber(it.Nilai);
+      const insentif = hitungInsentifFurniPro(qty);
+      valueHtml = `${formatPcs(qty)} · ${formatRupiah(insentif)}`;
+    } else {
+      valueHtml = formatRupiah(toNumber(it.Nilai));
+    }
+    return `
+      <div class="lb-item ${rank===1 ? 'top1':''}">
+        <div class="lb-rank ${rankClass}">${rank}</div>
+        <div class="lb-info">
+          <div class="lb-name">${it.Nama || "-"}</div>
+          <div class="lb-value">${valueHtml}</div>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function renderBestBulanan(rows){
+  const groups = { "Sales": [], "Furni Pro": [], "Departemen": [] };
+  rows.forEach(r => {
+    const cat = (r.Kategori || "").trim();
+    const key = Object.keys(groups).find(k => k.toLowerCase() === cat.toLowerCase());
+    if(key) groups[key].push(r);
+  });
+  // Furni Pro diurutkan berdasarkan quantity (pcs), sah karena insentif
+  // flat-tier selalu naik seiring qty naik.
+  Object.keys(groups).forEach(k => groups[k].sort((a,b) => toNumber(b.Nilai) - toNumber(a.Nilai)));
+
+  renderLeaderboard("listBestSales", groups["Sales"]);
+  renderLeaderboard("listBestFurniPro", groups["Furni Pro"], "furnipro");
+  renderLeaderboard("listBestDept", groups["Departemen"]);
+  document.getElementById("badgeBestSales").textContent = groups["Sales"].length + " orang";
+  document.getElementById("badgeBestFurniPro").textContent = groups["Furni Pro"].length + " orang";
+  document.getElementById("badgeBestDept").textContent = groups["Departemen"].length + " dept";
+}
+
+/* =====================================================================
+   FETCH ALL DATA
+   ===================================================================== */
+async function refreshData(){
+  try{
+    const [summary, topSales, topDept, bestBulan] = await Promise.all([
+      fetchTab(CONFIG.TABS.summary),
+      fetchTab(CONFIG.TABS.topSales),
+      fetchTab(CONFIG.TABS.topDept),
+      fetchTab(CONFIG.TABS.bestBulan),
+    ]);
+    renderSummary(summary);
+    renderTopSales(topSales);
+    renderTopDept(topDept);
+    renderBestBulanan(bestBulan);
+    document.getElementById("lastSync").textContent = new Date().toLocaleTimeString("id-ID");
+  } catch(err){
+    console.error("Gagal mengambil data dari Google Sheet:", err);
+    document.getElementById("lastSync").textContent = "Gagal sinkron — cek Sheet ID / akses";
+  }
+}
+
+/* =====================================================================
+   CLOCK
+   ===================================================================== */
+function tickClock(){
+  const now = new Date();
+  document.getElementById("clockTime").textContent = now.toLocaleTimeString("id-ID");
+  document.getElementById("clockDate").textContent = now.toLocaleDateString("id-ID", { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+}
+
+/* =====================================================================
+   SLIDE ROTATION
+   ===================================================================== */
+let currentSlide = 0;
+const slides = document.querySelectorAll(".slide");
+const dots = document.querySelectorAll(".dot");
+
+function showSlide(idx){
+  slides.forEach((s,i) => s.classList.toggle("active", i === idx));
+  dots.forEach((d,i) => d.classList.toggle("active", i === idx));
+  currentSlide = idx;
+}
+function nextSlide(){ showSlide((currentSlide + 1) % slides.length); }
+
+dots.forEach(d => d.addEventListener("click", () => showSlide(parseInt(d.dataset.slide))));
+
+/* =====================================================================
+   INIT
+   ===================================================================== */
+tickClock();
+setInterval(tickClock, 1000);
+
+refreshData();
+setInterval(refreshData, CONFIG.REFRESH_MS);
+setInterval(nextSlide, CONFIG.SLIDE_MS);
+</script>
+
+</body>
+</html>
