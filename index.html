@@ -258,6 +258,263 @@
   .sync-info b{ color:var(--text-mid); }
 
   ::-webkit-scrollbar{ display:none; }
+/* =====================================================
+   RESPONSIVE MOBILE
+   ===================================================== */
+
+@media (max-width: 768px){
+
+  html, body{
+    overflow:auto;
+    height:auto;
+    min-height:100%;
+  }
+
+  .app{
+    height:auto;
+    min-height:100vh;
+    padding:15px;
+  }
+
+  /* HEADER */
+  .topbar{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:15px;
+    padding-bottom:15px;
+    margin-bottom:15px;
+  }
+
+  .brand{
+    gap:10px;
+  }
+
+  .brand-mark{
+    width:38px;
+    height:38px;
+    font-size:14px;
+  }
+
+  .brand-text .store-name{
+    font-size:17px;
+  }
+
+  .brand-text .store-sub{
+    font-size:10px;
+  }
+
+
+  .status-cluster{
+    width:100%;
+    justify-content:space-between;
+  }
+
+  .clock{
+    font-size:17px;
+    min-width:auto;
+  }
+
+
+  /* STAGE */
+  .stage{
+    height:auto;
+    min-height:0;
+  }
+
+
+  .slide{
+    position:relative;
+    display:none;
+    transform:none;
+  }
+
+  .slide.active{
+    display:flex;
+  }
+
+
+  .slide-title{
+    font-size:11px;
+    letter-spacing:1.5px;
+    margin-bottom:12px;
+  }
+
+
+  /* GRID SEMUA JADI 1 KOLOM */
+  #slide1 .grid,
+  #slide2 .grid{
+    display:grid;
+    grid-template-columns:1fr;
+    grid-template-rows:auto;
+    gap:12px;
+  }
+
+
+  /* PANEL */
+  .panel{
+    padding:15px;
+    border-radius:12px;
+  }
+
+
+  /* TARGET RING */
+  .ring-panel{
+    flex-direction:column;
+    align-items:center;
+    gap:15px;
+    text-align:center;
+  }
+
+  .ring-wrap{
+    width:100px;
+    height:100px;
+  }
+
+  .ring-wrap svg{
+    width:100px;
+    height:100px;
+  }
+
+
+  .ring-pct{
+    font-size:20px;
+  }
+
+
+  .ring-figures{
+    width:100%;
+  }
+
+
+  .fig-value{
+    font-size:14px;
+  }
+
+
+  .fig-label{
+    font-size:11px;
+  }
+
+
+  /* TOP SALES */
+  .usales-wrap{
+    max-height:350px;
+  }
+
+
+  .usales-item{
+    padding:8px;
+  }
+
+
+  .usales-name{
+    font-size:12px;
+  }
+
+
+  .usales-stats{
+    font-size:10px;
+    gap:4px;
+  }
+
+
+  /* DEPARTMENT */
+  .dept-list{
+    gap:12px;
+  }
+
+
+  .dept-row{
+    flex-wrap:wrap;
+  }
+
+
+  .dept-name{
+    width:100%;
+    font-size:12px;
+  }
+
+
+  .dept-bar-track{
+    width:100%;
+    order:2;
+  }
+
+
+  .dept-value{
+    width:auto;
+    margin-left:auto;
+    font-size:11px;
+  }
+
+
+  /* LEADERBOARD */
+  #slide2 .grid{
+    grid-template-columns:1fr;
+  }
+
+
+  .lb-item{
+    padding:9px;
+  }
+
+
+  .lb-name{
+    font-size:12px;
+  }
+
+
+  .lb-value{
+    font-size:11px;
+  }
+
+
+  /* FOOTER */
+  .footbar{
+    margin-top:15px;
+    padding-top:12px;
+    flex-direction:column;
+    gap:10px;
+    text-align:center;
+  }
+
+
+  .sync-info{
+    font-size:10px;
+  }
+
+}
+
+
+/* HP SANGAT KECIL */
+@media (max-width:400px){
+
+  .app{
+    padding:10px;
+  }
+
+
+  .live-pill{
+    padding:6px 10px;
+  }
+
+
+  .ring-wrap{
+    width:90px;
+    height:90px;
+  }
+
+
+  .panel-head h3{
+    font-size:12px;
+  }
+
+
+  .clock{
+    font-size:15px;
+  }
+
+}  
 </style>
 </head>
 <body>
