@@ -1170,100 +1170,67 @@ function renderTopDept(rows){
   const max = toNumber(sorted[0].Nilai) || 1;
 
 
-  el.innerHTML = sorted.map(r=>{
+  el.innerHTML = sorted.map((r,index)=>{
 
-    const val = toNumber(r.Nilai);
+  const val = toNumber(r.Nilai);
+  const targetBulan = toNumber(r.Target);
 
-
-    // ambil target bulanan departemen
-    const targetBulan = toNumber(r.Target);
-
-
-    // persen tampil terhadap target bulan
-    const persen = targetBulan > 0
-      ? (val / targetBulan * 100)
-      : 0;
+  const persen = targetBulan > 0
+    ? (val / targetBulan * 100)
+    : 0;
 
 
-    // standar harian 3% target bulan
-    const targetHarian = targetBulan * 0.03;
+  return `
+
+  <div class="usales-item">
+
+    <div class="rank-chip ${
+      index===0?'r1':
+      index===1?'r2':
+      index===2?'r3':''
+    }">
+      ${index+1}
+    </div>
 
 
-    // warna indikator
-    const status = val >= targetHarian 
-      ? "green" 
-      : "red";
+    <div class="usales-info">
 
-
-    const bar = Math.max(
-      6,
-      (val/max*100)
-    );
-
-
-    return `
-
-    <div class="dept-row">
-
-      <div class="dept-name">
+      <div class="usales-name">
         ${r.Departemen || "-"}
       </div>
 
 
-      <div class="usales-item">
+      <div class="usales-stats">
 
-  <div class="rank-chip ${rankClass}">
-    ${index+1}
-  </div>
-
-  <div class="usales-info">
-
-    <div class="usales-name">
-      ${r.Departemen || "-"}
-    </div>
-
-    <div class="usales-stats">
-
-      <span class="stat">
-        <span class="stat-label">Sales:</span>
-        <span class="stat-value">
-          ${formatRupiah(val)}
+        <span class="stat">
+          <span class="stat-label">Sales:</span>
+          <span class="stat-value">
+            ${formatRupiah(val)}
+          </span>
         </span>
-      </span>
 
-      <span class="sep">|</span>
 
-      <span class="stat">
-        <span class="stat-label">Target:</span>
-        <span class="stat-value">
-          ${formatRupiah(targetBulan)}
+        <span class="sep">|</span>
+
+
+        <span class="stat">
+          <span class="stat-label">Target:</span>
+          <span class="stat-value">
+            ${formatRupiah(targetBulan)}
+          </span>
         </span>
-      </span>
 
-    </div>
-
-  </div>
-
-</div>
-
-
-      <div class="dept-value ${status}">
-
-        ${formatRupiah(val)}
-
-        <small>
-          ${persen.toFixed(1)}% target bulan
-        </small>
 
       </div>
 
 
     </div>
 
-    `;
+  </div>
 
+  `;
 
-  }).join("");
+}).join("");
 
 
   document.getElementById("badgeDept").textContent =
