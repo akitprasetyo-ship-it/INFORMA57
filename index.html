@@ -948,12 +948,16 @@ function renderSummary(obj){
   const targetHari = toNumber(get("TargetHari"));
   const actualHari = toNumber(get("ActualHari"));
 
-  const pctBulan = targetBulan > 0 ? (pencapaianBulan/targetBulan*100) : 0;
-  const pctGapMTD = standardMTD > 0 
-  ? (gapMTD / standardMTD * 100)
+  const pctBulan = targetBulan > 0 
+  ? (pencapaianBulan / targetBulan * 100) 
   : 0;
-  const now = new Date();
+
+
+// HITUNG STANDARD MTD
+const now = new Date();
+
 const hariIni = now.getDate();
+
 const totalHari = new Date(
   now.getFullYear(),
   now.getMonth()+1,
@@ -963,6 +967,12 @@ const totalHari = new Date(
 const standardMTD = targetBulan * (hariIni / totalHari);
 
 const gapMTD = pencapaianBulan - standardMTD;
+
+
+// PERSENTASE GAP MTD
+const pctGapMTD = standardMTD > 0 
+  ? (gapMTD / standardMTD * 100)
+  : 0;
   const pctHari = targetHari > 0 ? (actualHari/targetHari*100) : 0;
 
   document.getElementById("targetBulan").textContent = formatRupiah(targetBulan);
