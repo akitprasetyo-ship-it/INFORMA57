@@ -975,7 +975,7 @@ const gapMTD = pencapaianBulan - standardMTD;
 
 // PERSENTASE GAP MTD
 const pctGapMTD = standardMTD > 0 
-  ? (gapMTD / standardMTD * 100)
+  ? ((pencapaianBulan / standardMTD) - 1) * 100
   : 0;
   const pctHari = targetHari > 0 ? (actualHari/targetHari*100) : 0;
 
