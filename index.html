@@ -8,6 +8,52 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/*PARAMETER PERNCAPAIAN*/
+.gauge-wrap{
+  width:160px;
+  height:110px;
+  position:relative;
+  flex-shrink:0;
+}
+
+
+.gauge-wrap svg{
+  overflow:visible;
+}
+
+
+.gauge-value{
+  position:absolute;
+  bottom:0;
+  left:0;
+  right:0;
+  text-align:center;
+  font-weight:700;
+  font-size:22px;
+}
+
+
+.gauge-value small{
+  display:block;
+  font-size:9px;
+  color:var(--text-mid);
+  letter-spacing:1px;
+}
+
+
+#gaugeBulan{
+ transition:
+ stroke-dashoffset 1s ease,
+ stroke .5s ease;
+}
+
+
+#needleBulan{
+ transform-origin:80px 80px;
+ transition:transform 1s ease;
+}
+
+/*LOGO PERUSAHAAN*/
   .brand-mark{
   width:150px;
   height:55px;
@@ -564,13 +610,53 @@
       <div class="grid">
 
         <div class="panel ring-panel">
-          <div class="ring-wrap">
-            <svg width="118" height="118" viewBox="0 0 118 118">
-              <circle class="ring-track" cx="59" cy="59" r="50"></circle>
-              <circle class="ring-fill" id="ringBulan" cx="59" cy="59" r="50" stroke="#2f5fd9"
-                stroke-dasharray="314" stroke-dashoffset="314"></circle>
-            </svg>
-            <div class="ring-pct"><span id="pctBulan">0%</span><small>TERCAPAI</small></div>
+          <div class="gauge-wrap">
+
+<svg width="160" height="90" viewBox="0 0 160 90">
+
+  <!-- background gauge -->
+  <path 
+  d="M20 80 A60 60 0 0 1 140 80"
+  fill="none"
+  stroke="#e2e6ef"
+  stroke-width="12"
+  stroke-linecap="round"/>
+
+
+  <!-- progress gauge -->
+  <path 
+  id="gaugeBulan"
+  d="M20 80 A60 60 0 0 1 140 80"
+  fill="none"
+  stroke="#2f5fd9"
+  stroke-width="12"
+  stroke-linecap="round"
+  stroke-dasharray="188"
+  stroke-dashoffset="188"/>
+
+
+  <!-- jarum -->
+  <line 
+  id="needleBulan"
+  x1="80"
+  y1="80"
+  x2="80"
+  y2="25"
+  stroke="#141a2b"
+  stroke-width="3"
+  stroke-linecap="round"/>
+
+  <circle cx="80" cy="80" r="6" fill="#141a2b"/>
+
+
+</svg>
+
+
+<div class="gauge-value">
+<span id="pctBulan">0%</span>
+<small>TERCAPAI</small>
+</div>
+
           </div>
           <div class="ring-figures">
             <div class="panel-head" style="margin-bottom:8px;"><h3>Target &amp; Pencapaian Bulan Ini</h3></div>
