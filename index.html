@@ -932,6 +932,17 @@ function renderSummary(obj){
   const actualHari = toNumber(get("ActualHari"));
 
   const pctBulan = targetBulan > 0 ? (pencapaianBulan/targetBulan*100) : 0;
+  const now = new Date();
+const hariIni = now.getDate();
+const totalHari = new Date(
+  now.getFullYear(),
+  now.getMonth()+1,
+  0
+).getDate();
+
+const standardMTD = targetBulan * (hariIni / totalHari);
+
+const gapMTD = pencapaianBulan - standardMTD;
   const pctHari = targetHari > 0 ? (actualHari/targetHari*100) : 0;
 
   document.getElementById("targetBulan").textContent = formatRupiah(targetBulan);
