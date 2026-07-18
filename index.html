@@ -864,6 +864,39 @@ function initials(name){
 /* =====================================================================
    RENDER: Summary (target & pencapaian)
    ===================================================================== */
+//GAUGE
+function setGauge(path, needle, pct){
+
+const length = 188;
+
+const value = Math.max(0,Math.min(100,pct));
+
+path.setAttribute(
+"stroke-dashoffset",
+length-(length*value/100)
+);
+
+
+if(value < 50){
+ path.setAttribute("stroke","#c0392b");
+}
+else if(value < 80){
+ path.setAttribute("stroke","#a86214");
+}
+else{
+ path.setAttribute("stroke","#188053");
+}
+
+
+// rotasi jarum -90 sampai 90 derajat
+
+const angle = -90 + (value*1.8);
+
+needle.style.transform =
+`rotate(${angle}deg)`;
+
+}
+  
 function setRing(circleEl, pct){
   const r = 50, C = 2 * Math.PI * r;
   const clamped = Math.max(0, Math.min(100, pct));
