@@ -936,7 +936,11 @@ function renderSummary(obj){
   sisaBulan.textContent = formatRupiah(Math.abs(sisa));
   sisaBulan.className = "fig-value " + (sisa <= 0 ? "pos" : "");
   document.getElementById("pctBulan").textContent = pctBulan.toFixed(1) + "%";
-  setRing(document.getElementById("ringBulan"), pctBulan);
+  setGauge(
+ document.getElementById("gaugeBulan"),
+ document.getElementById("needleBulan"),
+ pctBulan
+);
 
   document.getElementById("targetHari").textContent = formatRupiah(targetHari);
   document.getElementById("actualHari").textContent = formatRupiah(actualHari);
