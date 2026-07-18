@@ -264,12 +264,52 @@
   .fig-value.neg{ color:var(--red-400); }
 
   /* Top Sales — list gabungan dengan auto-scroll vertikal */
-  .usales-wrap{ flex:1; overflow:hidden; position:relative; min-height:0; mask-image:linear-gradient(180deg, transparent, #000 14px, #000 calc(100% - 14px), transparent); }
-  .usales-track{ display:flex; flex-direction:column; gap:8px; will-change:transform; }
-  @keyframes usalesScroll{
-    from{ transform:translateY(0); }
-    to{ transform:translateY(var(--scroll-distance, 0)); }
-  }
+/* Wadah daftar yang dapat bergulir otomatis */
+.auto-scroll-wrap{
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+  position:relative;
+  mask-image:linear-gradient(
+    180deg,
+    transparent,
+    #000 12px,
+    #000 calc(100% - 12px),
+    transparent
+  );
+  -webkit-mask-image:linear-gradient(
+    180deg,
+    transparent,
+    #000 12px,
+    #000 calc(100% - 12px),
+    transparent
+  );
+}
+
+/* Track yang digerakkan oleh JavaScript */
+.auto-scroll-track{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  transform:translateY(0);
+  will-change:transform;
+}
+
+/* Tetap digunakan oleh Top Sales */
+.usales-wrap{
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+  position:relative;
+}
+
+.usales-track{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  will-change:transform;
+}
+
   .usales-item{
     display:flex; align-items:center; gap:12px;
     background:var(--navy-700); border:1px solid var(--panel-border); border-radius:10px; padding:9px 12px;
@@ -366,6 +406,19 @@
    ===================================================== */
 
 @media (max-width: 768px){
+
+.auto-scroll-wrap{
+  height:320px;
+  max-height:320px;
+  flex:none;
+}
+
+#salesWrap,
+#deptWrap{
+  height:320px;
+  max-height:320px;
+}
+
 
   html, body{
     overflow:auto;
@@ -747,17 +800,33 @@
           </div>
         </div>
 
-        <div class="panel">
-          <div class="panel-head"><h3>Top Sales Hari Ini</h3><span class="badge" id="badgeSales">--</span></div>
-          <div class="usales-wrap" id="salesWrap">
-            <div class="usales-track" id="salesTrack"><div class="empty-state">Memuat data…</div></div>
-          </div>
-        </div>
+        <div class="panel" style="display:flex; flex-direction:column;">
+  <div class="panel-head">
+    <h3>Top Sales Hari Ini</h3>
+    <span class="badge" id="badgeSales">--</span>
+  </div>
 
-        <div class="panel">
-          <div class="panel-head"><h3>Top Dept. Hari Ini</h3><span class="badge" id="badgeDept">--</span></div>
-          <div class="dept-list" id="listDept"><div class="empty-state">Memuat data…</div></div>
-        </div>
+  <div class="auto-scroll-wrap" id="salesWrap">
+    <div class="auto-scroll-track" id="salesTrack">
+      <div class="empty-state">Memuat data…</div>
+    </div>
+  </div>
+</div>
+
+
+        <div class="panel" style="display:flex; flex-direction:column;">
+  <div class="panel-head">
+    <h3>Top Dept. Hari Ini</h3>
+    <span class="badge" id="badgeDept">--</span>
+  </div>
+
+  <div class="auto-scroll-wrap" id="deptWrap">
+    <div class="auto-scroll-track" id="listDept">
+      <div class="empty-state">Memuat data…</div>
+    </div>
+  </div>
+</div>
+
 
       </div>
     </div>
@@ -1112,142 +1181,367 @@ function buildSalesRow(p, rank){
     </div>`;
 }
 
-let salesScrollTimer = null;
+/* =====================================================================
+   AUTO SCROLL VERTIKAL
+   ===================================================================== */
 
-function renderUnifiedSales(list){
-  const wrap = document.getElementById("salesWrap");
-  const track = document.getElementById("salesTrack");
+const autoScrollStates = new Map();
 
-  clearInterval(salesScrollTimer);
-  track.style.animation = "none";
-  track.style.transform = "translateY(0)";
+const slide1ScrollStatus = {
+  sales: false,
+  dept: false,
+  transitionDone: false
+};
 
-  if(!list.length){
-    track.innerHTML = '<div class="empty-state">Belum ada data</div>';
+function resetSlide1ScrollStatus(){
+  slide1ScrollStatus.sales = false;
+  slide1ScrollStatus.dept = false;
+  slide1ScrollStatus.transitionDone = false;
+}
+
+function markSlide1ScrollComplete(type){
+  if(type !== "sales" && type !== "dept"){
     return;
   }
 
-  const rowsHtml = list.map((p, idx) => buildSalesRow(p, idx + 1)).join("");
-  track.innerHTML = rowsHtml;
+  slide1ScrollStatus[type] = true;
 
-  // Kasih waktu render dulu, lalu ukur tinggi konten vs tinggi wadah.
-  // Kalau lebih tinggi dari wadah -> gandakan konten & jalankan auto-scroll
-  // vertikal (dari atas ke bawah) dengan kecepatan konstan, loop terus-menerus.
-  requestAnimationFrame(() => {
-    const wrapH = wrap.clientHeight;
-    const singleSetH = track.scrollHeight;
-    if(singleSetH > wrapH){
-      track.innerHTML = rowsHtml + rowsHtml; // duplikasi supaya loop mulus
-      const SPEED_PX_PER_SEC = 28;
-      const gapPx = 8; // harus sama dengan `gap` di .usales-track
-      const distance = singleSetH + gapPx;
-      const duration = Math.max(10, distance / SPEED_PX_PER_SEC);
-      track.style.setProperty("--scroll-distance", `-${distance}px`);
-      track.style.animation = `usalesScroll ${duration}s linear infinite`;
+  console.log(
+    "Status scroll Slide 1:",
+    slide1ScrollStatus
+  );
+
+  if(
+    slide1ScrollStatus.sales === true &&
+    slide1ScrollStatus.dept === true &&
+    slide1ScrollStatus.transitionDone === false &&
+    currentSlide === 0
+  ){
+    slide1ScrollStatus.transitionDone = true;
+
+    setTimeout(() => {
+      /*
+       * showSlide(1) sudah otomatis menjalankan
+       * scheduleReturnToSlide1().
+       */
+      showSlide(1);
+    }, 1000);
+  }
+}
+
+function stopAutoScroll(trackId){
+  const oldState = autoScrollStates.get(trackId);
+
+  if(oldState){
+    cancelAnimationFrame(oldState.animationFrame);
+    autoScrollStates.delete(trackId);
+  }
+
+  const track = document.getElementById(trackId);
+
+  if(track){
+    track.style.transform = "translate3d(0, 0, 0)";
+  }
+}
+
+function startAutoScroll(
+  wrapId,
+  trackId,
+  originalHTML,
+  onComplete
+){
+  const wrap = document.getElementById(wrapId);
+  const track = document.getElementById(trackId);
+
+  if(!wrap || !track){
+    console.warn(
+      `Elemen auto-scroll tidak ditemukan: ${wrapId} atau ${trackId}`
+    );
+
+    if(typeof onComplete === "function"){
+      onComplete();
     }
+
+    return;
+  }
+
+  stopAutoScroll(trackId);
+
+  track.innerHTML = originalHTML;
+  track.style.transform = "translate3d(0, 0, 0)";
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const containerHeight = wrap.clientHeight;
+      const originalHeight = track.scrollHeight;
+
+      /*
+       * Jika daftar tidak melebihi tinggi panel,
+       * daftar dianggap langsung selesai.
+       */
+      if(
+        containerHeight <= 0 ||
+        originalHeight <= containerHeight
+      ){
+        if(typeof onComplete === "function"){
+          setTimeout(onComplete, 1500);
+        }
+
+        return;
+      }
+
+      const gap = 8;
+
+      /*
+       * Gandakan isi supaya saat bergerak tidak muncul
+       * area kosong sebelum satu putaran selesai.
+       */
+      track.innerHTML =
+        originalHTML +
+        `<div
+          aria-hidden="true"
+          style="height:${gap}px; flex:0 0 ${gap}px;">
+        </div>` +
+        originalHTML;
+
+      const scrollDistance = originalHeight + gap;
+      const speed = 25;
+
+      let position = 0;
+      let previousTime = null;
+      let paused = false;
+      let completed = false;
+
+      const state = {
+        animationFrame: null
+      };
+
+      function animate(currentTime){
+        if(previousTime === null){
+          previousTime = currentTime;
+        }
+
+        const deltaTime = Math.min(
+          (currentTime - previousTime) / 1000,
+          0.1
+        );
+
+        previousTime = currentTime;
+
+        if(!paused){
+          position += speed * deltaTime;
+
+          /*
+           * Ketika satu putaran penuh selesai,
+           * hentikan scroll dan beri tahu sistem.
+           */
+          if(position >= scrollDistance){
+            position = scrollDistance;
+
+            track.style.transform =
+              `translate3d(0, -${position}px, 0)`;
+
+            completed = true;
+
+            cancelAnimationFrame(state.animationFrame);
+            autoScrollStates.delete(trackId);
+
+            if(typeof onComplete === "function"){
+              onComplete();
+            }
+
+            return;
+          }
+
+          track.style.transform =
+            `translate3d(0, -${position}px, 0)`;
+        }
+
+        if(!completed){
+          state.animationFrame =
+            requestAnimationFrame(animate);
+        }
+      }
+
+      wrap.onmouseenter = () => {
+        paused = true;
+      };
+
+      wrap.onmouseleave = () => {
+        paused = false;
+        previousTime = null;
+      };
+
+      wrap.ontouchstart = () => {
+        paused = true;
+      };
+
+      wrap.ontouchend = () => {
+        paused = false;
+        previousTime = null;
+      };
+
+      autoScrollStates.set(trackId, state);
+
+      state.animationFrame =
+        requestAnimationFrame(animate);
+    });
   });
+}
+
+/* =====================================================================
+   RENDER TOP SALES
+   ===================================================================== */
+
+function renderUnifiedSales(list){
+  const track = document.getElementById("salesTrack");
+
+  stopAutoScroll("salesTrack");
+
+  if(!track){
+    console.warn('Elemen dengan ID "salesTrack" tidak ditemukan.');
+    return;
+  }
+
+  if(!list.length){
+  track.innerHTML =
+    '<div class="empty-state">Belum ada data</div>';
+
+  setTimeout(() => {
+    markSlide1ScrollComplete("sales");
+  }, 1500);
+
+  return;
+}
+
+  const rowsHTML = list
+    .map((person, index) =>
+      buildSalesRow(person, index + 1)
+    )
+    .join("");
+
+  startAutoScroll(
+  "salesWrap",
+  "salesTrack",
+  rowsHTML,
+  () => markSlide1ScrollComplete("sales")
+);
 }
 
 function renderTopSales(rows){
   let merged = mergeSalesByName(rows);
 
-  // Hanya tampilkan sales yang punya nilai Sales > 0
-  merged = merged.filter(p => 
-    (p.Sales !== null && p.Sales > 0) ||
-    (p.FurniPro !== null && p.FurniPro > 0) ||
-    (p.Comser !== null && p.Comser > 0)
+  merged = merged.filter(person =>
+    (person.Sales !== null && person.Sales > 0) ||
+    (person.FurniPro !== null && person.FurniPro > 0) ||
+    (person.Comser !== null && person.Comser > 0)
   );
 
   merged = sortSalesRanking(merged);
 
   renderUnifiedSales(merged);
-  document.getElementById("badgeSales").textContent = merged.length + " sales";
+
+  document.getElementById("badgeSales").textContent =
+    merged.length + " sales";
 }
 
 /* =====================================================================
-   RENDER: Top Dept Hari Ini
+   RENDER TOP DEPT
    ===================================================================== */
+
 function renderTopDept(rows){
+  const track = document.getElementById("listDept");
+  const badge = document.getElementById("badgeDept");
 
-  const el = document.getElementById("listDept");
+  stopAutoScroll("listDept");
 
-  const sorted = [...rows]
-  .filter(r => toNumber(r.Nilai) > 0)
-  .sort((a,b)=>toNumber(b.Nilai)-toNumber(a.Nilai));
-
-
-  if(!sorted.length){
-    el.innerHTML='<div class="empty-state">Belum ada data</div>';
+  if(!track){
+    console.warn('Elemen dengan ID "listDept" tidak ditemukan.');
     return;
   }
 
+  const sorted = [...rows]
+    .filter(row => toNumber(row.Nilai) > 0)
+    .sort((a, b) =>
+      toNumber(b.Nilai) - toNumber(a.Nilai)
+    );
 
-  const max = toNumber(sorted[0].Nilai) || 1;
+  if(!sorted.length){
+  track.innerHTML =
+    '<div class="empty-state">Belum ada data</div>';
 
+  if(badge){
+    badge.textContent = "0 dept";
+  }
 
-  el.innerHTML = sorted.map((r,index)=>{
+  setTimeout(() => {
+    markSlide1ScrollComplete("dept");
+  }, 1500);
 
-  const val = toNumber(r.Nilai);
-  const targetBulan = toNumber(r.Target);
+  return;
+}
 
-  const persen = targetBulan > 0
-    ? (val / targetBulan * 100)
-    : 0;
+  const rowsHTML = sorted.map((row, index) => {
+    const actual = toNumber(row.Nilai);
+    const target = toNumber(row.Target);
 
+    const percentage =
+      target > 0
+        ? actual / target * 100
+        : 0;
 
-  return `
+    const rankClass =
+      index === 0
+        ? "r1"
+        : index === 1
+          ? "r2"
+          : index === 2
+            ? "r3"
+            : "";
 
-  <div class="usales-item">
+    return `
+      <div class="usales-item">
+        <div class="rank-chip ${rankClass}">
+          ${index + 1}
+        </div>
 
-    <div class="rank-chip ${
-      index===0?'r1':
-      index===1?'r2':
-      index===2?'r3':''
-    }">
-      ${index+1}
-    </div>
+        <div class="usales-info">
+          <div class="usales-name">
+            ${row.Departemen || "-"}
+          </div>
 
+          <div class="usales-stats">
+            <span class="stat">
+              <span class="stat-label">
+                Sales:
+              </span>
 
-    <div class="usales-info">
+              <span class="stat-value">
+                ${formatRupiah(actual)}
+              </span>
+            </span>
 
-      <div class="usales-name">
-        ${r.Departemen || "-"}
+            <span class="sep">|</span>
+
+            <span class="dept-persen">
+              ${percentage.toFixed(1)}% dari target
+            </span>
+          </div>
+        </div>
       </div>
+    `;
+  }).join("");
 
+ startAutoScroll(
+  "deptWrap",
+  "listDept",
+  rowsHTML,
+  () => markSlide1ScrollComplete("dept")
+);
 
-      <div class="usales-stats">
-
-<span class="stat">
-<span class="stat-label">Sales:</span>
-<span class="stat-value">
-${formatRupiah(val)}
-</span>
-</span>
-
-
-<span class="sep">|</span>
-
-
-<span class="dept-persen">
-${persen.toFixed(1)}% dari target
-</span>
-
-
-</div>
-
-
-    </div>
-
-  </div>
-
-  `;
-
-}).join("");
-
-
-  document.getElementById("badgeDept").textContent =
-    sorted.length + " dept";
-
+if(badge){
+  badge.textContent = sorted.length + " dept";
+}
 }
 
 /* =====================================================================
@@ -1331,41 +1625,96 @@ function tickClock(){
 /* =====================================================================
    SLIDE ROTATION
    ===================================================================== */
+
 let currentSlide = 0;
+let slide2Timer = null;
+
 const slides = document.querySelectorAll(".slide");
 const dots = document.querySelectorAll(".dot");
 
 function showSlide(idx){
-  slides.forEach((s,i) => s.classList.toggle("active", i === idx));
-  dots.forEach((d,i) => d.classList.toggle("active", i === idx));
-  currentSlide = idx;
-}
-function nextSlide(){ showSlide((currentSlide + 1) % slides.length); }
+  if(idx < 0 || idx >= slides.length){
+    return;
+  }
 
-dots.forEach(d => d.addEventListener("click", () => showSlide(parseInt(d.dataset.slide))));
+  slides.forEach((slide, index) => {
+    slide.classList.toggle("active", index === idx);
+  });
+
+  dots.forEach((dot, index) => {
+    dot.classList.toggle("active", index === idx);
+  });
+
+  currentSlide = idx;
+
+  if(idx === 0){
+    clearTimeout(slide2Timer);
+
+    /*
+     * Siapkan satu siklus scroll baru.
+     */
+    resetSlide1ScrollStatus();
+
+    /*
+     * Tunggu Slide 1 terlihat agar tinggi panel
+     * dapat dihitung dengan benar.
+     */
+    setTimeout(() => {
+      refreshData();
+    }, 150);
+  }
+
+  if(idx === 1){
+    /*
+     * Slide 2 tampil selama CONFIG.SLIDE_MS.
+     */
+    scheduleReturnToSlide1();
+  }
+}
+
+function scheduleReturnToSlide1(){
+  clearTimeout(slide2Timer);
+
+  slide2Timer = setTimeout(() => {
+    showSlide(0);
+  }, CONFIG.SLIDE_MS);
+}
+
+/* Klik navigasi slide */
+dots.forEach(dot => {
+  dot.addEventListener("click", () => {
+    const targetSlide = Number(dot.dataset.slide);
+
+    if(Number.isInteger(targetSlide)){
+      showSlide(targetSlide);
+    }
+  });
+});
 
 /* =====================================================================
    INIT
    ===================================================================== */
+
 tickClock();
 setInterval(tickClock, 1000);
 
+/*
+ * Mulai dashboard dari Slide 1.
+ */
+resetSlide1ScrollStatus();
 refreshData();
-setInterval(refreshData, CONFIG.REFRESH_MS);
-function startSlideTimer(){
 
-  const delay = currentSlide === 0 
-    ? CONFIG.SLIDE_MS * 3   // Slide 1 dua kali lebih lama
-    : CONFIG.SLIDE_MS;      // Slide 2 normal
+/*
+ * Refresh berkala hanya ketika Slide 2 tampil.
+ * Tujuannya supaya auto-scroll Slide 1 tidak terus
+ * dibatalkan dan dimulai ulang setiap 30 detik.
+ */
+setInterval(() => {
+  if(currentSlide === 1){
+    refreshData();
+  }
+}, CONFIG.REFRESH_MS);
 
-  setTimeout(() => {
-    nextSlide();
-    startSlideTimer();
-  }, delay);
-
-}
-
-startSlideTimer();
 </script>
 
 </body>
