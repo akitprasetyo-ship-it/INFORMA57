@@ -285,7 +285,30 @@
   .dept-name{ width:150px; flex-shrink:0; font-size:12.5px; color:var(--text-hi); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .dept-bar-track{ flex:1; height:14px; background:var(--navy-700); border-radius:8px; overflow:hidden; }
   .dept-bar-fill{ height:100%; border-radius:8px; background:var(--blue-500); transition:width 1s ease; }
-  .dept-value{ width:110px; text-align:right; font-family:var(--font-num); font-size:12px; color:var(--text-mid); flex-shrink:0; }
+  .dept-value{
+  width:130px;
+  text-align:right;
+  font-family:var(--font-num);
+  font-size:12px;
+  color:var(--text-mid);
+  flex-shrink:0;
+}
+
+.dept-value.green{
+  color:#188053;
+  font-weight:700;
+}
+
+.dept-value.red{
+  color:#c0392b;
+}
+
+.dept-value small{
+  display:block;
+  font-size:10px;
+  font-weight:600;
+  margin-top:2px;
+}
 
   /* ---------- Slide 2 leaderboards ---------- */
   #slide2 .grid{ flex:1; display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; min-height:0; }
