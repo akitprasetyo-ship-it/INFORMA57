@@ -8,6 +8,15 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/*CSS PERSENTASE*/
+.pct-info{
+  display:block;
+  font-size:11px;
+  color:var(--text-mid);
+  margin-top:2px;
+  text-align:right;
+  font-weight:600;
+}
 /*PARAMETER PERNCAPAIAN*/
 .gauge-wrap{
   width:160px;
@@ -661,11 +670,19 @@
           </div>
           <div class="ring-figures">
             <div class="panel-head" style="margin-bottom:8px;"><h3>Target &amp; Pencapaian Bulan Ini</h3></div>
-            <div class="fig-row"><span class="fig-label">Target Bulan</span><span class="fig-value" id="targetBulan">Rp 0</span></div>
-            <div class="fig-row"><span class="fig-label">Pencapaian</span><span class="fig-value pos" id="pencapaianBulan">Rp 0</span></div>
             <div class="fig-row">
-  <span class="fig-label">Gap MTD</span>
+<span class="fig-label">Pencapaian</span>
+<span>
+  <span class="fig-value pos" id="pencapaianBulan">Rp 0</span>
+  <small class="pct-info" id="pctPencapaianBulan">0%</small>
+</span>
+            </div>
+            <div class="fig-row">
+<span class="fig-label">Gap MTD</span>
+<span>
   <span class="fig-value" id="gapMTD">Rp 0</span>
+  <small class="pct-info" id="pctGapMTD">0%</small>
+</span>
             </div>
             <div class="fig-row"><span class="fig-label">Sisa Target</span><span class="fig-value" id="sisaBulan">Rp 0</span></div>
           </div>
