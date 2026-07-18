@@ -1153,23 +1153,93 @@ function renderTopSales(rows){
    RENDER: Top Dept Hari Ini
    ===================================================================== */
 function renderTopDept(rows){
+  function renderTopDept(rows){
+
   const el = document.getElementById("listDept");
+
   const sorted = [...rows]
   .filter(r => toNumber(r.Nilai) > 0)
-  .sort((a,b) => toNumber(b.Nilai) - toNumber(a.Nilai));
-  if(!sorted.length){ el.innerHTML = '<div class="empty-state">Belum ada data</div>'; return; }
+  .sort((a,b)=>toNumber(b.Nilai)-toNumber(a.Nilai));
+
+
+  if(!sorted.length){
+    el.innerHTML='<div class="empty-state">Belum ada data</div>';
+    return;
+  }
+
+
   const max = toNumber(sorted[0].Nilai) || 1;
-  el.innerHTML = sorted.map(r => {
+
+
+  el.innerHTML = sorted.map(r=>{
+
     const val = toNumber(r.Nilai);
-    const pct = Math.max(6, (val/max*100));
+
+
+    // ambil target bulanan departemen
+    const targetBulan = toNumber(r.Target);
+
+
+    // persen tampil terhadap target bulan
+    const persen = targetBulan > 0
+      ? (val / targetBulan * 100)
+      : 0;
+
+
+    // standar harian 3% target bulan
+    const targetHarian = targetBulan * 0.03;
+
+
+    // warna indikator
+    const status = val >= targetHarian 
+      ? "green" 
+      : "red";
+
+
+    const bar = Math.max(
+      6,
+      (val/max*100)
+    );
+
+
     return `
-      <div class="dept-row">
-        <div class="dept-name">${r.Departemen || "-"}</div>
-        <div class="dept-bar-track"><div class="dept-bar-fill" style="width:${pct}%"></div></div>
-        <div class="dept-value">${formatRupiah(val)}</div>
-      </div>`;
+
+    <div class="dept-row">
+
+      <div class="dept-name">
+        ${r.Departemen || "-"}
+      </div>
+
+
+      <div class="dept-bar-track">
+        <div class="dept-bar-fill"
+        style="width:${bar}%">
+        </div>
+      </div>
+
+
+      <div class="dept-value ${status}">
+
+        ${formatRupiah(val)}
+
+        <small>
+          ${persen.toFixed(1)}% target bulan
+        </small>
+
+      </div>
+
+
+    </div>
+
+    `;
+
+
   }).join("");
-  document.getElementById("badgeDept").textContent = rows.length + " dept";
+
+
+  document.getElementById("badgeDept").textContent =
+    sorted.length + " dept";
+
 }
 
 /* =====================================================================
