@@ -967,7 +967,13 @@ const gapMTD = pencapaianBulan - standardMTD;
 
   document.getElementById("targetBulan").textContent = formatRupiah(targetBulan);
   document.getElementById("pencapaianBulan").textContent = formatRupiah(pencapaianBulan);
+  document.getElementById("pctPencapaianBulan").textContent =
+  pctBulan.toFixed(1) + "% dari target";
   const gapEl = document.getElementById("gapMTD");
+  document.getElementById("pctGapMTD").textContent =
+  (gapMTD >= 0 ? "+" : "") +
+  pctGapMTD.toFixed(1) +
+  "%";
 
 gapEl.textContent =
   (gapMTD >= 0 ? "+" : "-") +
