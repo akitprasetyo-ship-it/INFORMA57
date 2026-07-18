@@ -949,6 +949,9 @@ function renderSummary(obj){
   const actualHari = toNumber(get("ActualHari"));
 
   const pctBulan = targetBulan > 0 ? (pencapaianBulan/targetBulan*100) : 0;
+  const pctGapMTD = standardMTD > 0 
+  ? (gapMTD / standardMTD * 100)
+  : 0;
   const now = new Date();
 const hariIni = now.getDate();
 const totalHari = new Date(
