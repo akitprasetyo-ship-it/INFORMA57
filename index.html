@@ -947,6 +947,15 @@ const gapMTD = pencapaianBulan - standardMTD;
 
   document.getElementById("targetBulan").textContent = formatRupiah(targetBulan);
   document.getElementById("pencapaianBulan").textContent = formatRupiah(pencapaianBulan);
+  const gapEl = document.getElementById("gapMTD");
+
+gapEl.textContent =
+  (gapMTD >= 0 ? "+" : "-") +
+  formatRupiah(Math.abs(gapMTD));
+
+gapEl.className =
+  "fig-value " + 
+  (gapMTD >= 0 ? "pos" : "neg");
   const sisaBulan = document.getElementById("sisaBulan");
   const sisa = targetBulan - pencapaianBulan;
   sisaBulan.textContent = formatRupiah(Math.abs(sisa));
