@@ -13,28 +13,26 @@
    PANEL TARGET BULAN
    ===================================================== */
 
-.monthly-panel{
-  display:grid;
-  grid-template-columns:135px minmax(0, 1fr);
-  align-items:center;
-  gap:14px;
-  padding:16px 18px;
+/* Layout ringkas: bar XP di atas, rincian angka di bawah (menggantikan speedometer) */
+.ring-panel.monthly-panel{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  justify-content:center;
+  gap:2px;
+  padding:14px 18px;
 }
 
-.monthly-panel .gauge-wrap{
-  width:135px;
-  height:105px;
-  transform:scale(.84);
-  transform-origin:center;
-}
-
-.monthly-panel .ring-figures{
+.monthly-panel .xp-block{
   width:100%;
-  min-width:0;
 }
 
 .monthly-panel .panel-head{
-  margin-bottom:5px !important;
+  margin-bottom:6px !important;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
 }
 
 .monthly-panel .panel-head h3{
@@ -42,12 +40,35 @@
   line-height:1.3;
 }
 
+.monthly-panel .xp-pct{
+  flex-shrink:0;
+  font-family:var(--font-num);
+  font-weight:800;
+  font-size:11.5px;
+  color:var(--blue-500);
+  background:#eaf1ff;
+  border:1px solid #cbd8ff;
+  padding:2px 9px;
+  border-radius:20px;
+  white-space:nowrap;
+}
+
+.monthly-panel .panel-head .pct-badges{
+  flex-shrink:0;
+}
+
+.monthly-panel .ring-figures{
+  width:100%;
+  min-width:0;
+  margin-top:8px;
+}
+
 .monthly-panel .fig-row{
   display:grid;
   grid-template-columns:minmax(80px, 1fr) auto;
   align-items:center;
   gap:8px;
-  padding:5px 0;
+  padding:4px 0;
 }
 
 .monthly-panel .fig-label{
@@ -83,25 +104,15 @@
   white-space:nowrap;
 }
 
+.monthly-panel .panel-head .pct-info{
+  display:inline-block;
+  padding:2px 9px;
+  font-size:11.5px;
+  font-weight:800;
+  border-radius:20px;
+}
+
 @media (max-width:1200px) and (min-width:769px){
-  .monthly-panel{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-}
-
-.monthly-panel .gauge-wrap{
-  width:160px;
-  transform:scale(.9);
-}
-
-.monthly-panel .ring-figures{
-  width:100%;
-}
-
-.monthly-panel .fig-row{
-  grid-template-columns:1fr auto;
-}
 
 .monthly-panel .fig-label{
   font-size:11px;
@@ -123,25 +134,6 @@
   max-height:320px;
   flex:none;
 }
-
-  .monthly-panel{
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-  }
-
-  .monthly-panel .gauge-wrap{
-    width:160px;
-    transform:scale(.9);
-  }
-
-  .monthly-panel .ring-figures{
-    width:100%;
-  }
-
-  .monthly-panel .fig-row{
-    grid-template-columns:1fr auto;
-  }
 
   .monthly-panel .fig-label{
     font-size:11px;
@@ -182,51 +174,139 @@
   border-radius:20px;
   border:1px solid #cbd8ff;
 }
-/*PARAMETER PERNCAPAIAN*/
-.gauge-wrap{
-  width:160px;
-  height:110px;
+
+/* Wadah untuk 2 badge persentase (persen pencapaian & selisih dari pace) berdampingan */
+.pct-badges{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:5px;
+  flex-wrap:nowrap;
+}
+
+.pct-badges .pct-info{
+  margin-top:3px;
+}
+
+.pct-badges .pct-info.pos{
+  color:var(--green-400);
+  background:#eaf6ef;
+  border-color:#bfe3cc;
+}
+
+.pct-badges .pct-info.neg{
+  color:var(--red-400);
+  background:#fbeceb;
+  border-color:#f0c6c2;
+}
+/*PARAMETER PENCAPAIAN — XP BAR (menggantikan speedometer)*/
+.xp-bar-wrap{
   position:relative;
-  flex-shrink:0;
+  width:100%;
+  margin-top:18px;
 }
 
-
-.gauge-wrap svg{
-  overflow:visible;
+.xp-bar-track{
+  position:relative;
+  width:100%;
+  height:22px;
+  border-radius:20px;
+  background:var(--navy-700);
+  border:1px solid var(--panel-border);
+  overflow:hidden;
 }
 
-
-.gauge-value{
+/* Isian abu-abu: posisi standar/pacing MTD, agar gap terlihat */
+.xp-bar-standard{
   position:absolute;
-  bottom:-15px;
+  top:0;
   left:0;
-  right:0;
-  text-align:center;
-  font-weight:700;
-  font-size:28px;
+  height:100%;
+  width:0%;
+  background:#c7cdda;
+  transition:width 1s ease;
+  z-index:1;
+}
+
+.xp-bar-standard-marker{
+  position:absolute;
+  top:0;
+  bottom:0;
+  width:2px;
+  left:0%;
+  background:#8a92a6;
+  transition:left 1s ease;
+  z-index:3;
+}
+
+.xp-bar-fill{
+  position:absolute;
+  top:0;
+  left:0;
+  height:100%;
+  width:0%;
+  border-radius:20px;
+  transition:width 1.1s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+  box-shadow:0 0 6px rgba(47,95,217,.45);
   z-index:2;
 }
 
+.xp-bar-fill.tier-low{ background:linear-gradient(90deg,#c0392b,#e0574a); }
+.xp-bar-fill.tier-mid{ background:linear-gradient(90deg,#a86214,#d68a2d); }
+.xp-bar-fill.tier-high{ background:linear-gradient(90deg,#188053,#2ea86f); }
 
-.gauge-value small{
-  display:block;
-  font-size:9px;
+.xp-bar-fill.milestone{
+  animation:xpPulse .6s ease;
+}
+
+@keyframes xpPulse{
+  0%{ filter:brightness(1); }
+  40%{ filter:brightness(1.45); }
+  100%{ filter:brightness(1); }
+}
+
+/* Animasi gelombang bergerak terus-menerus di dalam bar */
+.xp-bar-wave{
+  position:absolute;
+  inset:0;
+  background-image:repeating-linear-gradient(
+    135deg,
+    rgba(255,255,255,.32) 0px,
+    rgba(255,255,255,.32) 8px,
+    transparent 8px,
+    transparent 18px
+  );
+  background-size:34px 34px;
+  animation:xpWaveMove 1.1s linear infinite;
+}
+
+@keyframes xpWaveMove{
+  from{ background-position:0 0; }
+  to{ background-position:34px 0; }
+}
+
+.xp-bar-legend{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:6px;
+  font-size:8.5px;
   color:var(--text-mid);
-  letter-spacing:1px;
 }
 
-
-#gaugeBulan{
- transition:
- stroke-dashoffset 1s ease,
- stroke .5s ease;
+.xp-bar-legend .dot{
+  display:inline-block;
+  width:7px;
+  height:7px;
+  border-radius:2px;
+  margin-right:4px;
+  vertical-align:middle;
 }
 
+.xp-bar-legend .dot.actual{ background:#2f5fd9; }
+.xp-bar-legend .dot.standard{ background:#c7cdda; border:1px solid #8a92a6; }
 
-#needleBulan{
- transform-origin:80px 80px;
- transition:transform 1s ease;
-}
 
 /*LOGO PERUSAHAAN*/
   .brand-mark{
@@ -290,6 +370,12 @@
 
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; }
+
+    /* Dikecualikan agar animasi gelombang bar tetap berjalan penuh */
+    .xp-bar-wave{
+      animation-duration:1.1s !important;
+      animation-iteration-count:infinite !important;
+    }
   }
 
   .app{
@@ -1094,60 +1180,34 @@
       <div class="grid">
 
         <div class="panel ring-panel monthly-panel">
-          <div class="gauge-wrap">
+          <div class="xp-block">
 
-<svg width="160" height="90" viewBox="0 0 160 90">
+  <!-- JUDUL PANEL + PERSENTASE (menggantikan speedometer) -->
+  <div class="panel-head">
+    <h3>Target &amp; Pencapaian Bulan Ini</h3>
+    <span class="pct-badges">
+      <small class="pct-info" id="pctSelisihPace">0%</small>
+      <span class="xp-pct" id="pctBulan">0%</span>
+    </span>
+  </div>
 
-  <!-- background gauge -->
-  <path 
-  d="M20 80 A60 60 0 0 1 140 80"
-  fill="none"
-  stroke="#e2e6ef"
-  stroke-width="12"
-  stroke-linecap="round"/>
+  <div class="xp-bar-wrap">
+    <div class="xp-bar-track">
+      <div class="xp-bar-standard" id="xpBarStandard"></div>
+      <div class="xp-bar-standard-marker" id="xpBarStandardMarker"></div>
+      <div class="xp-bar-fill" id="xpBarBulan">
+        <span class="xp-bar-wave"></span>
+      </div>
+    </div>
+  </div>
 
-
-  <!-- progress gauge -->
-  <path 
-  id="gaugeBulan"
-  d="M20 80 A60 60 0 0 1 140 80"
-  fill="none"
-  stroke="#2f5fd9"
-  stroke-width="12"
-  stroke-linecap="round"
-  stroke-dasharray="188"
-  stroke-dashoffset="188"/>
-
-
-  <!-- jarum -->
-  <line 
-  id="needleBulan"
-  x1="80"
-  y1="80"
-  x2="80"
-  y2="35"
-  stroke="#141a2b"
-  stroke-width="3"
-  stroke-linecap="round"/>
-
-  <circle cx="80" cy="80" r="4" fill="#141a2b"/>
-
-
-</svg>
-
-
-<div class="gauge-value">
-<span id="pctBulan">0%</span>
-<small>TERCAPAI</small>
-</div>
+  <div class="xp-bar-legend">
+    <span><span class="dot actual"></span>Pencapaian</span>
+    <span><span class="dot standard"></span>Standar MTD</span>
+  </div>
 
           </div>
           <div class="ring-figures">
-
-  <!-- JUDUL PANEL -->
-  <div class="panel-head" style="margin-bottom:8px;">
-    <h3>Target &amp; Pencapaian Bulan Ini</h3>
-  </div>
 
   <!-- BARIS TARGET BULAN -->
   <div class="fig-row">
@@ -1172,10 +1232,6 @@
       <span class="fig-value pos" id="pencapaianBulan">
         Rp 0
       </span>
-
-      <small class="pct-info" id="pctPencapaianBulan">
-        0%
-      </small>
     </span>
   </div>
 
@@ -1189,10 +1245,6 @@
       <span class="fig-value" id="gapMTD">
         Rp 0
       </span>
-
-      <small class="pct-info" id="pctGapMTD">
-        0%
-      </small>
     </span>
   </div>
 
@@ -1478,37 +1530,38 @@ function initials(name){
 /* =====================================================================
    RENDER: Summary (target & pencapaian)
    ===================================================================== */
-//GAUGE
-function setGauge(path, needle, pct){
+//XP BAR (menggantikan speedometer)
+function setXPBar(fillEl, standardEl, markerEl, pct, standardPct){
 
-const length = 188;
+  const value = Math.max(0, Math.min(100, pct));
+  const standardValue = Math.max(0, Math.min(100, standardPct));
 
-const value = Math.max(0,Math.min(100,pct));
+  const prevValue = parseFloat(fillEl.dataset.pct || "0");
 
-path.setAttribute(
-"stroke-dashoffset",
-length-(length*value/100)
-);
+  fillEl.style.width = value + "%";
+  standardEl.style.width = standardValue + "%";
+  markerEl.style.left = standardValue + "%";
 
+  fillEl.classList.remove("tier-low", "tier-mid", "tier-high");
 
-if(value < 50){
- path.setAttribute("stroke","#c0392b");
-}
-else if(value < 80){
- path.setAttribute("stroke","#a86214");
-}
-else{
- path.setAttribute("stroke","#188053");
-}
+  if(value < 50){
+    fillEl.classList.add("tier-low");
+  }
+  else if(value < 80){
+    fillEl.classList.add("tier-mid");
+  }
+  else{
+    fillEl.classList.add("tier-high");
+  }
 
+  // Efek "kilau" tambahan tiap kali nilai naik melewati kelipatan 10% (mirip level-up XP bar game)
+  if(Math.floor(value/10) > Math.floor(prevValue/10)){
+    fillEl.classList.remove("milestone");
+    void fillEl.offsetWidth;
+    fillEl.classList.add("milestone");
+  }
 
-// rotasi jarum -90 sampai 90 derajat
-
-const angle = -90 + (value*1.8);
-
-needle.style.transform =
-`rotate(${angle}deg)`;
-
+  fillEl.dataset.pct = value;
 }
   
 function setRing(circleEl, pct){
@@ -1655,19 +1708,29 @@ const mtdTahunLalu =
       : 0;
 
   /*
-   * Standard MTD sementara menggunakan angka tetap.
-   * Ubah 0.3927 jika persentase standard MTD berubah.
+   * Standard MTD = (Total Target Bulan / Jumlah Hari Bulan Ini) x Tanggal Hari Ini.
+   * Dihitung otomatis mengikuti tanggal berjalan, bukan angka tetap.
    */
+  const tanggalHariIni =
+    new Date().getDate();
+
+  const jumlahHariBulanIni =
+    new Date(
+      new Date().getFullYear(),
+      new Date().getMonth() + 1,
+      0
+    ).getDate();
+
   const standardMTD =
-    targetBulan * 0.3927;
+    (targetBulan / jumlahHariBulanIni) * tanggalHariIni;
+
+  const pctStandardMTD =
+    targetBulan > 0
+      ? standardMTD / targetBulan * 100
+      : 0;
 
   const gapMTD =
     pencapaianBulan - standardMTD;
-
-  const pctGapMTD =
-    standardMTD > 0
-      ? ((pencapaianBulan / standardMTD) - 1) * 100
-      : 0;
 
   const pctHari =
     targetHari > 0
@@ -1680,8 +1743,21 @@ const mtdTahunLalu =
   document.getElementById("pencapaianBulan").textContent =
     formatRupiah(pencapaianBulan);
 
-  document.getElementById("pctPencapaianBulan").textContent =
-    pctBulan.toFixed(1) + "% dari target";
+  // Selisih persen MTD dibanding persen standar MTD (pace)
+  const pctSelisihPace =
+    pctBulan - pctStandardMTD;
+
+  const pctSelisihEl =
+    document.getElementById("pctSelisihPace");
+
+  pctSelisihEl.textContent =
+    (pctSelisihPace >= 0 ? "+" : "") +
+    pctSelisihPace.toFixed(1) +
+    "% pace";
+
+  pctSelisihEl.className =
+    "pct-info " +
+    (pctSelisihPace >= 0 ? "pos" : "neg");
 
   const gapEl =
     document.getElementById("gapMTD");
@@ -1693,14 +1769,6 @@ const mtdTahunLalu =
   gapEl.className =
     "fig-value " +
     (gapMTD >= 0 ? "pos" : "neg");
-
-  const pctGapEl =
-    document.getElementById("pctGapMTD");
-
-  pctGapEl.textContent =
-    (pctGapMTD >= 0 ? "+" : "") +
-    pctGapMTD.toFixed(1) +
-    "%";
 
   const sisa =
     targetBulan - pencapaianBulan;
@@ -1720,10 +1788,12 @@ const mtdTahunLalu =
   document.getElementById("pctBulan").textContent =
     pctBulan.toFixed(1) + "%";
 
-  setGauge(
-    document.getElementById("gaugeBulan"),
-    document.getElementById("needleBulan"),
-    pctBulan
+  setXPBar(
+    document.getElementById("xpBarBulan"),
+    document.getElementById("xpBarStandard"),
+    document.getElementById("xpBarStandardMarker"),
+    pctBulan,
+    pctStandardMTD
   );
 
   document.getElementById("targetHari").textContent =
