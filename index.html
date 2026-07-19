@@ -118,6 +118,12 @@
 
 @media (max-width:768px){
 
+.slide2-scroll-wrap{
+  height:320px;
+  max-height:320px;
+  flex:none;
+}
+
   .monthly-panel{
     display:flex;
     flex-direction:column;
@@ -703,6 +709,29 @@
   #slide2 .grid{ flex:1; display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; min-height:0; }
   .lb-panel{ display:flex; flex-direction:column; min-height:0; }
   .lb-list{ display:flex; flex-direction:column; gap:9px; overflow:hidden; flex:1; }
+  
+  /* =====================================================
+   AUTO SCROLL SLIDE 2
+   ===================================================== */
+
+.slide2-scroll-wrap{
+  flex:1;
+  min-height:0;
+  overflow:hidden;
+  position:relative;
+}
+
+.slide2-scroll-wrap .auto-scroll-track{
+  display:flex;
+  flex-direction:column;
+  gap:9px;
+  will-change:transform;
+}
+
+.slide2-scroll-wrap .lb-item{
+  flex-shrink:0;
+}
+  
   .lb-item{
     display:flex; align-items:center; gap:12px;
     background:var(--navy-700); border:1px solid var(--panel-border); border-radius:10px; padding:10px 12px;
@@ -1264,20 +1293,44 @@
       <div class="slide-title">Best Performer Bulan Ini</div>
       <div class="grid">
 
-        <div class="panel lb-panel">
-          <div class="panel-head"><h3>Best Sales Bulan Ini</h3><span class="badge" id="badgeBestSales">--</span></div>
-          <div class="lb-list" id="listBestSales"><div class="empty-state">Memuat data…</div></div>
-        </div>
+     <div class="panel lb-panel">
+  <div class="panel-head">
+    <h3>Best Sales Bulan Ini</h3>
+    <span class="badge" id="badgeBestSales">--</span>
+  </div>
 
-        <div class="panel lb-panel">
-          <div class="panel-head"><h3>Best Furni Pro Bulan Ini</h3><span class="badge" id="badgeBestFurniPro">--</span></div>
-          <div class="lb-list" id="listBestFurniPro"><div class="empty-state">Memuat data…</div></div>
-        </div>
+  <div class="auto-scroll-wrap slide2-scroll-wrap" id="bestSalesWrap">
+    <div class="auto-scroll-track" id="listBestSales">
+      <div class="empty-state">Memuat data…</div>
+    </div>
+  </div>
+</div>
 
-        <div class="panel lb-panel">
-          <div class="panel-head"><h3>Best Departemen Bulan Ini</h3><span class="badge" id="badgeBestDept">--</span></div>
-          <div class="lb-list" id="listBestDept"><div class="empty-state">Memuat data…</div></div>
-        </div>
+<div class="panel lb-panel">
+  <div class="panel-head">
+    <h3>Best Furni Pro Bulan Ini</h3>
+    <span class="badge" id="badgeBestFurniPro">--</span>
+  </div>
+
+  <div class="auto-scroll-wrap slide2-scroll-wrap" id="bestFurniProWrap">
+    <div class="auto-scroll-track" id="listBestFurniPro">
+      <div class="empty-state">Memuat data…</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel lb-panel">
+  <div class="panel-head">
+    <h3>Best Departemen Bulan Ini</h3>
+    <span class="badge" id="badgeBestDept">--</span>
+  </div>
+
+  <div class="auto-scroll-wrap slide2-scroll-wrap" id="bestDeptWrap">
+    <div class="auto-scroll-track" id="listBestDept">
+      <div class="empty-state">Memuat data…</div>
+    </div>
+  </div>
+</div>
 
       </div>
     </div>
@@ -1776,6 +1829,53 @@ const slide1ScrollStatus = {
   transitionDone: false
 };
 
+const slide2ScrollStatus = {
+  sales: false,
+  furnipro: false,
+  dept: false,
+  transitionDone: false
+};
+
+function resetSlide2ScrollStatus(){
+  slide2ScrollStatus.sales = false;
+  slide2ScrollStatus.furnipro = false;
+  slide2ScrollStatus.dept = false;
+  slide2ScrollStatus.transitionDone = false;
+}
+
+function markSlide2ScrollComplete(type){
+  if(
+    type !== "sales" &&
+    type !== "furnipro" &&
+    type !== "dept"
+  ){
+    return;
+  }
+
+  slide2ScrollStatus[type] = true;
+
+  console.log(
+    "Status scroll Slide 2:",
+    slide2ScrollStatus
+  );
+
+if(
+  slide2ScrollStatus.sales === true &&
+  slide2ScrollStatus.furnipro === true &&
+  slide2ScrollStatus.dept === true &&
+  slide2ScrollStatus.transitionDone === false &&
+  currentSlide === 1
+){
+  slide2ScrollStatus.transitionDone = true;
+
+  setTimeout(() => {
+    if(currentSlide === 1){
+      showSlide(0);
+    }
+  }, 1000);
+}
+}
+
 function resetSlide1ScrollStatus(){
   slide1ScrollStatus.sales = false;
   slide1ScrollStatus.dept = false;
@@ -1794,22 +1894,20 @@ function markSlide1ScrollComplete(type){
     slide1ScrollStatus
   );
 
-  if(
-    slide1ScrollStatus.sales === true &&
-    slide1ScrollStatus.dept === true &&
-    slide1ScrollStatus.transitionDone === false &&
-    currentSlide === 0
-  ){
-    slide1ScrollStatus.transitionDone = true;
+if(
+  slide1ScrollStatus.sales === true &&
+  slide1ScrollStatus.dept === true &&
+  slide1ScrollStatus.transitionDone === false &&
+  currentSlide === 0
+){
+  slide1ScrollStatus.transitionDone = true;
 
-    setTimeout(() => {
-      /*
-       * showSlide(1) sudah otomatis menjalankan
-       * scheduleReturnToSlide1().
-       */
+  setTimeout(() => {
+    if(currentSlide === 0){
       showSlide(1);
-    }, 1000);
-  }
+    }
+  }, 1000);
+}
 }
 
 function stopAutoScroll(trackId){
@@ -2130,48 +2228,167 @@ if(badge){
 /* =====================================================================
    RENDER: Best Bulanan (slide 2)
    ===================================================================== */
-function renderLeaderboard(containerId, items, mode){
-  const el = document.getElementById(containerId);
-  if(!items.length){ el.innerHTML = '<div class="empty-state">Belum ada data</div>'; return; }
-  el.innerHTML = items.slice(0, CONFIG.MAX_ROWS).map((it, idx) => {
+function renderLeaderboard(
+  wrapId,
+  containerId,
+  items,
+  mode,
+  scrollType
+){
+  const el =
+    document.getElementById(containerId);
+
+  stopAutoScroll(containerId);
+
+  if(!el){
+    console.warn(
+      `Elemen leaderboard "${containerId}" tidak ditemukan.`
+    );
+
+    markSlide2ScrollComplete(scrollType);
+    return;
+  }
+
+  if(!items.length){
+    el.innerHTML =
+      '<div class="empty-state">Belum ada data</div>';
+
+    setTimeout(() => {
+      markSlide2ScrollComplete(scrollType);
+    }, 1500);
+
+    return;
+  }
+
+  /*
+   * Tidak menggunakan slice().
+   * Semua data akan dibuat menjadi list.
+   */
+  const rowsHTML = items.map((it, idx) => {
     const rank = idx + 1;
-    const rankClass = rank === 1 ? "r1" : rank === 2 ? "r2" : rank === 3 ? "r3" : "";
+
+    const rankClass =
+      rank === 1
+        ? "r1"
+        : rank === 2
+          ? "r2"
+          : rank === 3
+            ? "r3"
+            : "";
+
     let valueHtml;
+
     if(mode === "furnipro"){
-      const qty = toNumber(it.Nilai);
-      const insentif = hitungInsentifFurniPro(qty);
-      valueHtml = `${formatPcs(qty)} · ${formatRupiah(insentif)}`;
+      const qty =
+        toNumber(it.Nilai);
+
+      const insentif =
+        hitungInsentifFurniPro(qty);
+
+      valueHtml =
+        `${formatPcs(qty)} · ${formatRupiah(insentif)}`;
     } else {
-      valueHtml = formatRupiah(toNumber(it.Nilai));
+      valueHtml =
+        formatRupiah(toNumber(it.Nilai));
     }
+
     return `
-      <div class="lb-item ${rank===1 ? 'top1':''}">
-        <div class="lb-rank ${rankClass}">${rank}</div>
-        <div class="lb-info">
-          <div class="lb-name">${it.Nama || "-"}</div>
-          <div class="lb-value">${valueHtml}</div>
+      <div class="lb-item ${rank === 1 ? "top1" : ""}">
+        <div class="lb-rank ${rankClass}">
+          ${rank}
         </div>
-      </div>`;
+
+        <div class="lb-info">
+          <div class="lb-name">
+            ${it.Nama || "-"}
+          </div>
+
+          <div class="lb-value">
+            ${valueHtml}
+          </div>
+        </div>
+      </div>
+    `;
   }).join("");
+
+  startAutoScroll(
+    wrapId,
+    containerId,
+    rowsHTML,
+    () => markSlide2ScrollComplete(scrollType)
+  );
 }
 
 function renderBestBulanan(rows){
-  const groups = { "Sales": [], "Furni Pro": [], "Departemen": [] };
-  rows.forEach(r => {
-    const cat = (r.Kategori || "").trim();
-    const key = Object.keys(groups).find(k => k.toLowerCase() === cat.toLowerCase());
-    if(key) groups[key].push(r);
-  });
-  // Furni Pro diurutkan berdasarkan quantity (pcs), sah karena insentif
-  // flat-tier selalu naik seiring qty naik.
-  Object.keys(groups).forEach(k => groups[k].sort((a,b) => toNumber(b.Nilai) - toNumber(a.Nilai)));
+  const groups = {
+    "Sales": [],
+    "Furni Pro": [],
+    "Departemen": []
+  };
 
-  renderLeaderboard("listBestSales", groups["Sales"]);
-  renderLeaderboard("listBestFurniPro", groups["Furni Pro"], "furnipro");
-  renderLeaderboard("listBestDept", groups["Departemen"]);
-  document.getElementById("badgeBestSales").textContent = groups["Sales"].length + " orang";
-  document.getElementById("badgeBestFurniPro").textContent = groups["Furni Pro"].length + " orang";
-  document.getElementById("badgeBestDept").textContent = groups["Departemen"].length + " dept";
+  rows.forEach(row => {
+    const category =
+      (row.Kategori || "").trim();
+
+    const key =
+      Object.keys(groups).find(groupName =>
+        normKey(groupName) === normKey(category)
+      );
+
+    if(key){
+      groups[key].push(row);
+    }
+  });
+
+  /*
+   * Urutkan semua data dari nilai terbesar.
+   */
+  Object.keys(groups).forEach(key => {
+    groups[key].sort(
+      (a, b) =>
+        toNumber(b.Nilai) -
+        toNumber(a.Nilai)
+    );
+  });
+
+  renderLeaderboard(
+    "bestSalesWrap",
+    "listBestSales",
+    groups["Sales"],
+    "sales",
+    "sales"
+  );
+
+  renderLeaderboard(
+    "bestFurniProWrap",
+    "listBestFurniPro",
+    groups["Furni Pro"],
+    "furnipro",
+    "furnipro"
+  );
+
+  renderLeaderboard(
+    "bestDeptWrap",
+    "listBestDept",
+    groups["Departemen"],
+    "dept",
+    "dept"
+  );
+
+  document.getElementById(
+    "badgeBestSales"
+  ).textContent =
+    groups["Sales"].length + " orang";
+
+  document.getElementById(
+    "badgeBestFurniPro"
+  ).textContent =
+    groups["Furni Pro"].length + " orang";
+
+  document.getElementById(
+    "badgeBestDept"
+  ).textContent =
+    groups["Departemen"].length + " dept";
 }
 
 /* =====================================================================
@@ -2211,60 +2428,157 @@ function tickClock(){
 
 let currentSlide = 0;
 let slide2Timer = null;
+let isChangingSlide = false;
 
 const slides = document.querySelectorAll(".slide");
 const dots = document.querySelectorAll(".dot");
 
 function showSlide(idx){
-  if(idx < 0 || idx >= slides.length){
+  if(
+    idx < 0 ||
+    idx >= slides.length ||
+    isChangingSlide
+  ){
     return;
   }
 
+  /*
+   * Jangan menjalankan perpindahan ke slide
+   * yang sedang aktif.
+   */
+  if(idx === currentSlide){
+    return;
+  }
+
+  isChangingSlide = true;
+
+  /*
+   * Hentikan seluruh auto-scroll dari slide lama.
+   */
+  stopAutoScroll("salesTrack");
+  stopAutoScroll("listDept");
+
+  stopAutoScroll("listBestSales");
+  stopAutoScroll("listBestFurniPro");
+  stopAutoScroll("listBestDept");
+
+  clearTimeout(slide2Timer);
+
   slides.forEach((slide, index) => {
-    slide.classList.toggle("active", index === idx);
+    slide.classList.toggle(
+      "active",
+      index === idx
+    );
   });
 
   dots.forEach((dot, index) => {
-    dot.classList.toggle("active", index === idx);
+    dot.classList.toggle(
+      "active",
+      index === idx
+    );
   });
 
   currentSlide = idx;
 
-  if(idx === 0){
-    clearTimeout(slide2Timer);
+  /*
+   * Tunggu transisi CSS selesai sebelum
+   * menghitung tinggi daftar.
+   */
+  setTimeout(() => {
+    if(currentSlide === 0){
+      resetSlide1ScrollStatus();
 
-    /*
-     * Siapkan satu siklus scroll baru.
-     */
-    resetSlide1ScrollStatus();
+      refreshDataForCurrentSlide()
+        .finally(() => {
+          isChangingSlide = false;
+        });
+    }
 
-    /*
-     * Tunggu Slide 1 terlihat agar tinggi panel
-     * dapat dihitung dengan benar.
-     */
-    setTimeout(() => {
-      refreshData();
-    }, 150);
-  }
+    if(currentSlide === 1){
+      resetSlide2ScrollStatus();
 
-  if(idx === 1){
-    /*
-     * Slide 2 tampil selama CONFIG.SLIDE_MS.
-     */
-    scheduleReturnToSlide1();
-  }
+      refreshDataForCurrentSlide()
+        .finally(() => {
+          isChangingSlide = false;
+        });
+    }
+  }, 700);
 }
 
-function scheduleReturnToSlide1(){
-  clearTimeout(slide2Timer);
-
-  slide2Timer = setTimeout(() => {
-    showSlide(0);
-  }, CONFIG.SLIDE_MS);
-}
 
 /* Klik navigasi slide */
-dots.forEach(dot => {
+dots.forEach(dot => {function showSlide(idx){
+  if(
+    idx < 0 ||
+    idx >= slides.length ||
+    isChangingSlide
+  ){
+    return;
+  }
+
+  /*
+   * Jangan menjalankan perpindahan ke slide
+   * yang sedang aktif.
+   */
+  if(idx === currentSlide){
+    return;
+  }
+
+  isChangingSlide = true;
+
+  /*
+   * Hentikan seluruh auto-scroll dari slide lama.
+   */
+  stopAutoScroll("salesTrack");
+  stopAutoScroll("listDept");
+
+  stopAutoScroll("listBestSales");
+  stopAutoScroll("listBestFurniPro");
+  stopAutoScroll("listBestDept");
+
+  clearTimeout(slide2Timer);
+
+  slides.forEach((slide, index) => {
+    slide.classList.toggle(
+      "active",
+      index === idx
+    );
+  });
+
+  dots.forEach((dot, index) => {
+    dot.classList.toggle(
+      "active",
+      index === idx
+    );
+  });
+
+  currentSlide = idx;
+
+  /*
+   * Tunggu transisi CSS selesai sebelum
+   * menghitung tinggi daftar.
+   */
+  setTimeout(() => {
+    if(currentSlide === 0){
+      resetSlide1ScrollStatus();
+
+      refreshDataForCurrentSlide()
+        .finally(() => {
+          isChangingSlide = false;
+        });
+    }
+
+    if(currentSlide === 1){
+      resetSlide2ScrollStatus();
+
+      refreshDataForCurrentSlide()
+        .finally(() => {
+          isChangingSlide = false;
+        });
+    }
+  }, 700);
+}
+
   dot.addEventListener("click", () => {
     const targetSlide = Number(dot.dataset.slide);
 
@@ -2285,18 +2599,160 @@ setInterval(tickClock, 1000);
  * Mulai dashboard dari Slide 1.
  */
 resetSlide1ScrollStatus();
-refreshData();
 
-/*
- * Refresh berkala hanya ketika Slide 2 tampil.
- * Tujuannya supaya auto-scroll Slide 1 tidak terus
- * dibatalkan dan dimulai ulang setiap 30 detik.
- */
-setInterval(() => {
+refreshData().finally(() => {
+  isChangingSlide = false;
+});
+
+async function refreshData(){
+  try{
+    const [
+      summary,
+      topSales,
+      topDept,
+      bestBulan
+    ] = await Promise.all([
+      fetchTab(CONFIG.TABS.summary),
+      fetchTab(CONFIG.TABS.topSales),
+      fetchTab(CONFIG.TABS.topDept),
+      fetchTab(CONFIG.TABS.bestBulan)
+    ]);
+
+    /*
+     * Simpan hasil Google Sheet ke cache.
+     */
+    dashboardData = {
+      summary,
+      topSales,
+      topDept,
+      bestBulan
+    };
+
+    renderCurrentSlide();
+
+    document.getElementById(
+      "lastSync"
+    ).textContent =
+      new Date().toLocaleTimeString("id-ID");
+
+  } catch(err){
+    console.error(
+      "Gagal mengambil data dari Google Sheet:",
+      err
+    );
+
+    document.getElementById(
+      "lastSync"
+    ).textContent =
+      "Gagal sinkron — cek Sheet ID / akses";
+  }
+}
+
+async function refreshData(){
+  try{
+    const [
+      summary,
+      topSales,
+      topDept,
+      bestBulan
+    ] = await Promise.all([
+      fetchTab(CONFIG.TABS.summary),
+      fetchTab(CONFIG.TABS.topSales),
+      fetchTab(CONFIG.TABS.topDept),
+      fetchTab(CONFIG.TABS.bestBulan)
+    ]);
+
+    /*
+     * Simpan hasil Google Sheet ke cache.
+     */
+    dashboardData = {
+      summary,
+      topSales,
+      topDept,
+      bestBulan
+    };
+
+    renderCurrentSlide();
+
+    document.getElementById(
+      "lastSync"
+    ).textContent =
+      new Date().toLocaleTimeString("id-ID");
+
+  } catch(err){
+    console.error(
+      "Gagal mengambil data dari Google Sheet:",
+      err
+    );
+
+    document.getElementById(
+      "lastSync"
+    ).textContent =
+      "Gagal sinkron — cek Sheet ID / akses";
+  }
+}
+
+function renderCurrentSlide(){
+  /*
+   * Summary tetap boleh diperbarui karena tidak
+   * menjalankan auto-scroll.
+   */
+  renderSummary(
+    dashboardData.summary
+  );
+
+  if(currentSlide === 0){
+    renderTopSales(
+      dashboardData.topSales
+    );
+
+    renderTopDept(
+      dashboardData.topDept
+    );
+  }
+
   if(currentSlide === 1){
+    renderBestBulanan(
+      dashboardData.bestBulan
+    );
+  }
+}
+
+async function refreshDataForCurrentSlide(){
+  /*
+   * Jika cache belum tersedia, ambil data dari Sheet.
+   */
+  const cacheKosong =
+    !dashboardData.summary.length &&
+    !dashboardData.topSales.length &&
+    !dashboardData.topDept.length &&
+    !dashboardData.bestBulan.length;
+
+  if(cacheKosong){
+    await refreshData();
+    return;
+  }
+
+  /*
+   * Jika cache sudah ada, tidak perlu fetch ulang
+   * ketika hanya berpindah slide.
+   */
+  renderCurrentSlide();
+}
+
+setInterval(() => {
+  /*
+   * Jangan refresh saat:
+   * - slide sedang berpindah;
+   * - auto-scroll masih aktif.
+   */
+  if(
+    isChangingSlide === false &&
+    autoScrollStates.size === 0
+  ){
     refreshData();
   }
-}, CONFIG.REFRESH_MS);
+}, CONFIG.REFRESH_MS);;
 
 </script>
 
