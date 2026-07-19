@@ -477,16 +477,40 @@
   flex:1;
   display:grid;
   grid-template-columns:repeat(6, minmax(0, 1fr));
-  grid-template-rows:auto 1fr;
+  grid-template-rows:auto auto 1fr;
   gap:16px;
   min-height:0;
 }
 
-/* Tiga panel bagian atas */
-#slide1 .monthly-panel,
-#slide1 .daily-panel,
-#slide1 .growth-panel{
+/* Panel Target & Pencapaian Bulan Ini — tetap pertama & dominan, tinggi 2 baris di sisi kiri */
+#slide1 .monthly-panel{
   grid-column:span 2;
+  grid-row:span 2;
+}
+
+/* Grid 2x2 di sisi kanan: Target Hari Ini, Growth (baris 1) / Furni Pro, Comser (baris 2) */
+#slide1 .daily-panel,
+#slide1 .growth-panel,
+#slide1 .furnipro-panel,
+#slide1 .comser-panel{
+  grid-column:span 2;
+}
+
+.mtd-metric-panel .mtd-metric-body{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:8px;
+}
+
+.mtd-metric-panel .fig-value{
+  font-size:20px;
+  font-weight:700;
+}
+
+.mtd-metric-panel .pct-info{
+  flex-shrink:0;
 }
 
 /* Dua panel bagian bawah */
@@ -856,12 +880,15 @@
 
 @media (max-width: 768px){
 
+#slide1 .furnipro-panel,
+#slide1 .comser-panel,
 #slide1 .monthly-panel,
 #slide1 .daily-panel,
 #slide1 .growth-panel,
 #slide1 .sales-panel,
 #slide1 .dept-panel{
   grid-column:1;
+  grid-row:auto;
 }
 
 .growth-main{
@@ -1302,6 +1329,30 @@
         MTD bulan ini dibanding MTD tahun lalu
       </div>
     </div>
+  </div>
+</div>
+
+<!-- PANEL MTD FURNI PRO -->
+<div class="panel mtd-metric-panel furnipro-panel">
+  <div class="panel-head">
+    <h3>MTD Furni Pro</h3>
+  </div>
+
+  <div class="mtd-metric-body">
+    <span class="fig-value" id="mtdFurniPro">0 pcs</span>
+    <span class="pct-info" id="pctFurniPro">0%</span>
+  </div>
+</div>
+
+<!-- PANEL MTD COMSER -->
+<div class="panel mtd-metric-panel comser-panel">
+  <div class="panel-head">
+    <h3>MTD Comser</h3>
+  </div>
+
+  <div class="mtd-metric-body">
+    <span class="fig-value" id="mtdComser">Rp 0</span>
+    <span class="pct-info" id="pctComser">0%</span>
   </div>
 </div>
 
@@ -1828,6 +1879,59 @@ const mtdTahunLalu =
   pencapaianBulan,
   mtdTahunLalu
 );
+
+  /* -------------------------------------------------
+     MTD FURNI PRO & COMSER
+     Ambil dari Summary: MTDFurniPro, TargetFurniPro,
+     MTDComser, TargetComser
+     ------------------------------------------------- */
+  const mtdFurniPro =
+    toNumber(get("MTDFurniPro"));
+
+  const targetFurniPro =
+    toNumber(get("TargetFurniPro"));
+
+  const pctFurniPro =
+    targetFurniPro > 0
+      ? mtdFurniPro / targetFurniPro * 100
+      : 0;
+
+  const mtdComser =
+    toNumber(get("MTDComser"));
+
+  const targetComser =
+    toNumber(get("TargetComser"));
+
+  const pctComser =
+    targetComser > 0
+      ? mtdComser / targetComser * 100
+      : 0;
+
+  document.getElementById("mtdFurniPro").textContent =
+    formatPcs(mtdFurniPro);
+
+  const pctFurniProEl =
+    document.getElementById("pctFurniPro");
+
+  pctFurniProEl.textContent =
+    pctFurniPro.toFixed(1) + "%";
+
+  pctFurniProEl.className =
+    "pct-info " +
+    (pctFurniPro >= 100 ? "pos" : "neg");
+
+  document.getElementById("mtdComser").textContent =
+    formatRupiah(mtdComser);
+
+  const pctComserEl =
+    document.getElementById("pctComser");
+
+  pctComserEl.textContent =
+    pctComser.toFixed(1) + "%";
+
+  pctComserEl.className =
+    "pct-info " +
+    (pctComser >= 100 ? "pos" : "neg");
 }
 
 /* =====================================================================
@@ -2828,3 +2932,5 @@ setInterval(() => {
 
 </body>
 </html>
+
+
