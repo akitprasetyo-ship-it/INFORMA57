@@ -513,6 +513,84 @@
   flex-shrink:0;
 }
 
+/* Progress bar MTD Furni Pro — model pill pink seperti referensi */
+.fp-progress-panel{
+  display:flex;
+  align-items:center;
+  border:1px solid #f6c9d7;
+  background:#fffafb;
+}
+
+.fp-progress-card{
+  width:100%;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+
+.fp-progress-top{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.fp-progress-badge{
+  background:#ec4c78;
+  color:#ffffff;
+  font-weight:800;
+  font-size:14px;
+  padding:6px 14px;
+  border-radius:9px;
+  flex-shrink:0;
+  box-shadow:0 3px 8px rgba(236,76,120,0.35);
+}
+
+.fp-progress-label{
+  font-weight:800;
+  color:#ec4c78;
+  font-size:15px;
+  flex:1;
+}
+
+.fp-progress-sub{
+  font-weight:600;
+  color:var(--text-low);
+  font-size:12px;
+  flex-shrink:0;
+  white-space:nowrap;
+}
+
+.fp-progress-track{
+  position:relative;
+  width:100%;
+  height:9px;
+  border-radius:999px;
+  background:#f7d6e0;
+  overflow:visible;
+}
+
+.fp-progress-fill{
+  position:relative;
+  height:100%;
+  min-width:9px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#e83a68,#f2769a);
+  transition:width .8s ease;
+}
+
+.fp-progress-fill::after{
+  content:"";
+  position:absolute;
+  right:-3px;
+  top:50%;
+  transform:translateY(-50%);
+  width:11px;
+  height:11px;
+  border-radius:50%;
+  background:#c0295a;
+  border:2px solid #ffffff;
+}
+
 /* Dua panel bagian bawah */
 #slide1 .sales-panel,
 #slide1 .dept-panel{
@@ -1333,14 +1411,16 @@
 </div>
 
 <!-- PANEL MTD FURNI PRO -->
-<div class="panel mtd-metric-panel furnipro-panel">
-  <div class="panel-head">
-    <h3>MTD Furni Pro</h3>
-  </div>
-
-  <div class="mtd-metric-body">
-    <span class="fig-value" id="mtdFurniPro">0 pcs</span>
-    <span class="pct-info" id="pctFurniPro">0%</span>
+<div class="panel mtd-metric-panel furnipro-panel fp-progress-panel">
+  <div class="fp-progress-card">
+    <div class="fp-progress-top">
+      <span class="fp-progress-badge" id="pctFurniProBadge">0%</span>
+      <span class="fp-progress-label">MTD Furni Pro</span>
+      <span class="fp-progress-sub" id="mtdFurniProSub">0 pcs</span>
+    </div>
+    <div class="fp-progress-track">
+      <div class="fp-progress-fill" id="furniProFill" style="width:0%"></div>
+    </div>
   </div>
 </div>
 
@@ -1907,18 +1987,16 @@ const mtdTahunLalu =
       ? mtdComser / targetComser * 100
       : 0;
 
-  document.getElementById("mtdFurniPro").textContent =
-    formatPcs(mtdFurniPro);
+  document.getElementById("mtdFurniProSub").textContent =
+    targetFurniPro > 0
+      ? formatPcs(mtdFurniPro) + " / " + formatPcs(targetFurniPro) + " pcs"
+      : formatPcs(mtdFurniPro) + " pcs";
 
-  const pctFurniProEl =
-    document.getElementById("pctFurniPro");
+  document.getElementById("pctFurniProBadge").textContent =
+    pctFurniPro.toFixed(0) + "%";
 
-  pctFurniProEl.textContent =
-    pctFurniPro.toFixed(1) + "%";
-
-  pctFurniProEl.className =
-    "pct-info " +
-    (pctFurniPro >= 100 ? "pos" : "neg");
+  document.getElementById("furniProFill").style.width =
+    Math.min(pctFurniPro, 100) + "%";
 
   document.getElementById("mtdComser").textContent =
     formatRupiah(mtdComser);
