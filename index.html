@@ -237,10 +237,27 @@
   }
 
   /* ---------- Slide 1 grid ---------- */
-  #slide1 .grid{
-    flex:1; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:auto 1fr;
-    gap:16px; min-height:0;
-  }
+#slide1 .grid{
+  flex:1;
+  display:grid;
+  grid-template-columns:repeat(6, minmax(0, 1fr));
+  grid-template-rows:auto 1fr;
+  gap:16px;
+  min-height:0;
+}
+
+/* Tiga panel bagian atas */
+#slide1 .monthly-panel,
+#slide1 .daily-panel,
+#slide1 .growth-panel{
+  grid-column:span 2;
+}
+
+/* Dua panel bagian bawah */
+#slide1 .sales-panel,
+#slide1 .dept-panel{
+  grid-column:span 3;
+}
   .target-row{ display:contents; }
 
   .ring-panel{ display:flex; align-items:center; gap:20px; }
@@ -365,6 +382,127 @@
   margin-top:2px;
 }
 
+/* ---------- Growth Rate Panel ---------- */
+
+.growth-panel{
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.growth-main{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin:8px 0 14px;
+}
+
+.growth-icon{
+  width:58px;
+  height:58px;
+  border-radius:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-shrink:0;
+  font-size:25px;
+  font-weight:800;
+  background:#eef1f7;
+  color:var(--text-mid);
+  border:1px solid var(--panel-border);
+  transition:all .4s ease;
+}
+
+.growth-icon.positive{
+  background:#eaf6ef;
+  color:var(--green-400);
+  border-color:#bfe3cc;
+}
+
+.growth-icon.negative{
+  background:#fff0ee;
+  color:var(--red-400);
+  border-color:#f2c9c4;
+}
+
+.growth-icon.neutral{
+  background:#fff7e8;
+  color:var(--amber-400);
+  border-color:#efd9ac;
+}
+
+.growth-data{
+  min-width:0;
+}
+
+.growth-percentage{
+  font-family:var(--font-num);
+  font-size:30px;
+  line-height:1;
+  font-weight:800;
+  color:var(--text-hi);
+  letter-spacing:-1px;
+}
+
+.growth-percentage.positive{
+  color:var(--green-400);
+}
+
+.growth-percentage.negative{
+  color:var(--red-400);
+}
+
+.growth-percentage.neutral{
+  color:var(--amber-400);
+}
+
+.growth-caption{
+  margin-top:6px;
+  font-size:11px;
+  color:var(--text-mid);
+}
+
+.growth-comparison{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+}
+
+.growth-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  padding-bottom:7px;
+  border-bottom:1px dashed var(--panel-border);
+}
+
+.growth-row:last-child{
+  padding-bottom:0;
+  border-bottom:none;
+}
+
+.growth-label{
+  font-size:11px;
+  color:var(--text-mid);
+}
+
+.growth-value{
+  font-family:var(--font-num);
+  font-size:12px;
+  font-weight:700;
+  color:var(--text-hi);
+  text-align:right;
+}
+
+.growth-value.positive{
+  color:var(--green-400);
+}
+
+.growth-value.negative{
+  color:var(--red-400);
+}
+
   /* ---------- Slide 2 leaderboards ---------- */
   #slide2 .grid{ flex:1; display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; min-height:0; }
   .lb-panel{ display:flex; flex-direction:column; min-height:0; }
@@ -406,6 +544,26 @@
    ===================================================== */
 
 @media (max-width: 768px){
+
+#slide1 .monthly-panel,
+#slide1 .daily-panel,
+#slide1 .growth-panel,
+#slide1 .sales-panel,
+#slide1 .dept-panel{
+  grid-column:1;
+}
+
+.growth-main{
+  justify-content:center;
+}
+
+.growth-data{
+  text-align:left;
+}
+
+.growth-percentage{
+  font-size:27px;
+}
 
 .auto-scroll-wrap{
   height:320px;
@@ -710,7 +868,7 @@
       <div class="slide-title">Performa Hari Ini</div>
       <div class="grid">
 
-        <div class="panel ring-panel">
+        <div class="panel ring-panel monthly-panel">
           <div class="gauge-wrap">
 
 <svg width="160" height="90" viewBox="0 0 160 90">
@@ -783,7 +941,7 @@
           </div>
         </div>
 
-        <div class="panel ring-panel">
+        <div class="panel ring-panel daily-panel">
           <div class="ring-wrap">
             <svg width="118" height="118" viewBox="0 0 118 118">
               <circle class="ring-track" cx="59" cy="59" r="50"></circle>
@@ -800,7 +958,56 @@
           </div>
         </div>
 
-        <div class="panel" style="display:flex; flex-direction:column;">
+      <!-- PANEL GROWTH RATE -->
+<div class="panel growth-panel">
+  <div class="panel-head">
+    <h3>Growth Rate Hari Ini</h3>
+    <span class="badge" id="growthBadge">vs kemarin</span>
+  </div>
+
+  <div class="growth-main">
+    <div class="growth-icon neutral" id="growthIcon">→</div>
+
+    <div class="growth-data">
+      <div class="growth-percentage neutral" id="growthRate">
+        0,0%
+      </div>
+
+      <div class="growth-caption" id="growthCaption">
+        Belum ada perbandingan
+      </div>
+    </div>
+  </div>
+
+  <div class="growth-comparison">
+    <div class="growth-row">
+      <span class="growth-label">Actual Hari Ini</span>
+      <span class="growth-value" id="growthActualHari">
+        Rp 0
+      </span>
+    </div>
+
+    <div class="growth-row">
+      <span class="growth-label">Actual Kemarin</span>
+      <span class="growth-value" id="growthActualKemarin">
+        Rp 0
+      </span>
+    </div>
+
+    <div class="growth-row">
+      <span class="growth-label">Perubahan Nominal</span>
+      <span class="growth-value" id="growthNominal">
+        Rp 0
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL TOP SALES -->
+<div
+  class="panel sales-panel"
+  style="display:flex; flex-direction:column;"
+>
   <div class="panel-head">
     <h3>Top Sales Hari Ini</h3>
     <span class="badge" id="badgeSales">--</span>
@@ -814,7 +1021,7 @@
 </div>
 
 
-        <div class="panel" style="display:flex; flex-direction:column;">
+        <div class="panel dept-panel" style="display:flex; flex-direction:column;">
   <div class="panel-head">
     <h3>Top Dept. Hari Ini</h3>
     <span class="badge" id="badgeDept">--</span>
@@ -1038,90 +1245,259 @@ function setRing(circleEl, pct){
   if(pct >= 100) circleEl.setAttribute("stroke", "#2ea86f");
 }
 
+function renderGrowthRate(actualHari, actualKemarin){
+  const rateEl = document.getElementById("growthRate");
+  const iconEl = document.getElementById("growthIcon");
+  const captionEl = document.getElementById("growthCaption");
+  const nominalEl = document.getElementById("growthNominal");
+  const badgeEl = document.getElementById("growthBadge");
+
+  const actualHariEl =
+    document.getElementById("growthActualHari");
+
+  const actualKemarinEl =
+    document.getElementById("growthActualKemarin");
+
+  actualHariEl.textContent =
+    formatRupiah(actualHari);
+
+  actualKemarinEl.textContent =
+    formatRupiah(actualKemarin);
+
+  const perubahanNominal =
+    actualHari - actualKemarin;
+
+  let growthRate = 0;
+
+  if(actualKemarin > 0){
+    growthRate =
+      ((actualHari - actualKemarin) / actualKemarin) * 100;
+  }
+
+  rateEl.className = "growth-percentage";
+  iconEl.className = "growth-icon";
+  nominalEl.className = "growth-value";
+
+  if(actualKemarin <= 0){
+    rateEl.textContent = "–";
+    rateEl.classList.add("neutral");
+
+    iconEl.textContent = "→";
+    iconEl.classList.add("neutral");
+
+    nominalEl.textContent =
+      formatRupiah(actualHari);
+
+    captionEl.textContent =
+      "Data kemarin belum tersedia";
+
+    badgeEl.textContent =
+      "belum tersedia";
+
+    return;
+  }
+
+  rateEl.textContent =
+    (growthRate >= 0 ? "+" : "") +
+    growthRate.toFixed(1).replace(".", ",") +
+    "%";
+
+  nominalEl.textContent =
+    (perubahanNominal >= 0 ? "+" : "-") +
+    formatRupiah(Math.abs(perubahanNominal));
+
+  if(growthRate > 0){
+    rateEl.classList.add("positive");
+    iconEl.classList.add("positive");
+    nominalEl.classList.add("positive");
+
+    iconEl.textContent = "↑";
+    captionEl.textContent =
+      "Penjualan meningkat dari kemarin";
+
+    badgeEl.textContent =
+      "bertumbuh";
+  } else if(growthRate < 0){
+    rateEl.classList.add("negative");
+    iconEl.classList.add("negative");
+    nominalEl.classList.add("negative");
+
+    iconEl.textContent = "↓";
+    captionEl.textContent =
+      "Penjualan menurun dari kemarin";
+
+    badgeEl.textContent =
+      "menurun";
+  } else {
+    rateEl.classList.add("neutral");
+    iconEl.classList.add("neutral");
+
+    iconEl.textContent = "→";
+    captionEl.textContent =
+      "Penjualan sama dengan kemarin";
+
+    badgeEl.textContent =
+      "stabil";
+  }
+}
+
 function renderSummary(obj){
-  if(!obj.length) console.warn('[Live Update Store] Tab "Summary" kosong atau gagal dimuat — cek nama tab & isi sheet.');
+  if(!obj.length){
+    console.warn(
+      '[Live Update Store] Tab "Summary" kosong atau gagal dimuat.'
+    );
+  }
 
   const get = (key) => {
     const target = normKey(key);
+
     for(const row of obj){
-      const cols = Object.values(row);          // pakai posisi kolom, bukan nama header
-      if(normKey(cols[0]) === target) return cols[1] ?? "";
+      const cols = Object.values(row);
+
+      if(normKey(cols[0]) === target){
+        return cols[1] ?? "";
+      }
     }
-    console.warn(`[Live Update Store] Key "${key}" tidak ditemukan di tab Summary. Baris yang ada:`, obj.map(r => Object.values(r)[0]));
+
+    console.warn(
+      `[Live Update Store] Key "${key}" tidak ditemukan.`,
+      obj.map(row => Object.values(row)[0])
+    );
+
     return "";
   };
 
   const namaToko = get("NamaToko");
-  if(namaToko) document.getElementById("storeName").textContent = namaToko;
 
-  const targetBulan = toNumber(get("TargetBulan"));
-  const pencapaianBulan = toNumber(get("PencapaianBulan"));
-  const targetHari = toNumber(get("TargetHari"));
-  const actualHari = toNumber(get("ActualHari"));
+  if(namaToko){
+    document.getElementById("storeName").textContent =
+      namaToko;
+  }
 
-  const pctBulan = targetBulan > 0 
-  ? (pencapaianBulan / targetBulan * 100) 
-  : 0;
+  const targetBulan =
+    toNumber(get("TargetBulan"));
 
+  const pencapaianBulan =
+    toNumber(get("PencapaianBulan"));
 
-// HITUNG STANDARD MTD
-const now = new Date();
+  const targetHari =
+    toNumber(get("TargetHari"));
 
-const hariIni = now.getDate();
+  const actualHari =
+    toNumber(get("ActualHari"));
 
-const totalHari = new Date(
-  now.getFullYear(),
-  now.getMonth()+1,
-  0
-).getDate();
+  const actualKemarin =
+    toNumber(get("ActualKemarin"));
 
-const standardMTD = targetBulan * 0.3927;
+  const pctBulan =
+    targetBulan > 0
+      ? pencapaianBulan / targetBulan * 100
+      : 0;
 
-const gapMTD = pencapaianBulan - standardMTD;
+  /*
+   * Standard MTD sementara menggunakan angka tetap.
+   * Ubah 0.3927 jika persentase standard MTD berubah.
+   */
+  const standardMTD =
+    targetBulan * 0.3927;
 
+  const gapMTD =
+    pencapaianBulan - standardMTD;
 
-// PERSENTASE GAP MTD
-const pctGapMTD = standardMTD > 0 
-  ? ((pencapaianBulan / standardMTD) - 1) * 100
-  : 0;
-  const pctHari = targetHari > 0 ? (actualHari/targetHari*100) : 0;
+  const pctGapMTD =
+    standardMTD > 0
+      ? ((pencapaianBulan / standardMTD) - 1) * 100
+      : 0;
 
-  document.getElementById("targetBulan").textContent = formatRupiah(targetBulan);
-  document.getElementById("pencapaianBulan").textContent = formatRupiah(pencapaianBulan);
+  const pctHari =
+    targetHari > 0
+      ? actualHari / targetHari * 100
+      : 0;
+
+  document.getElementById("targetBulan").textContent =
+    formatRupiah(targetBulan);
+
+  document.getElementById("pencapaianBulan").textContent =
+    formatRupiah(pencapaianBulan);
+
   document.getElementById("pctPencapaianBulan").textContent =
-  pctBulan.toFixed(1) + "% dari target";
-  const gapEl = document.getElementById("gapMTD");
-  document.getElementById("pctGapMTD").textContent =
-  (gapMTD >= 0 ? "+" : "") +
-  pctGapMTD.toFixed(1) +
-  "%";
+    pctBulan.toFixed(1) + "% dari target";
 
-gapEl.textContent =
-  (gapMTD >= 0 ? "+" : "-") +
-  formatRupiah(Math.abs(gapMTD));
+  const gapEl =
+    document.getElementById("gapMTD");
 
-gapEl.className =
-  "fig-value " + 
-  (gapMTD >= 0 ? "pos" : "neg");
-  const sisaBulan = document.getElementById("sisaBulan");
-  const sisa = targetBulan - pencapaianBulan;
-  sisaBulan.textContent = formatRupiah(Math.abs(sisa));
-  sisaBulan.className = "fig-value " + (sisa <= 0 ? "pos" : "");
-  document.getElementById("pctBulan").textContent = pctBulan.toFixed(1) + "%";
+  gapEl.textContent =
+    (gapMTD >= 0 ? "+" : "-") +
+    formatRupiah(Math.abs(gapMTD));
+
+  gapEl.className =
+    "fig-value " +
+    (gapMTD >= 0 ? "pos" : "neg");
+
+  const pctGapEl =
+    document.getElementById("pctGapMTD");
+
+  pctGapEl.textContent =
+    (pctGapMTD >= 0 ? "+" : "") +
+    pctGapMTD.toFixed(1) +
+    "%";
+
+  const sisa =
+    targetBulan - pencapaianBulan;
+
+  const sisaBulanEl =
+    document.getElementById("sisaBulan");
+
+  sisaBulanEl.textContent =
+    sisa > 0
+      ? formatRupiah(sisa)
+      : "+" + formatRupiah(Math.abs(sisa));
+
+  sisaBulanEl.className =
+    "fig-value " +
+    (sisa <= 0 ? "pos" : "");
+
+  document.getElementById("pctBulan").textContent =
+    pctBulan.toFixed(1) + "%";
+
   setGauge(
- document.getElementById("gaugeBulan"),
- document.getElementById("needleBulan"),
- pctBulan
-);
+    document.getElementById("gaugeBulan"),
+    document.getElementById("needleBulan"),
+    pctBulan
+  );
 
-  document.getElementById("targetHari").textContent = formatRupiah(targetHari);
-  document.getElementById("actualHari").textContent = formatRupiah(actualHari);
-  const selisihHari = document.getElementById("selisihHari");
-  const selisih = actualHari - targetHari;
-  selisihHari.textContent = (selisih >= 0 ? "+" : "-") + formatRupiah(Math.abs(selisih));
-  selisihHari.className = "fig-value " + (selisih >= 0 ? "pos" : "neg");
-  document.getElementById("pctHari").textContent = pctHari.toFixed(1) + "%";
-  setRing(document.getElementById("ringHari"), pctHari);
+  document.getElementById("targetHari").textContent =
+    formatRupiah(targetHari);
+
+  document.getElementById("actualHari").textContent =
+    formatRupiah(actualHari);
+
+  const selisih =
+    actualHari - targetHari;
+
+  const selisihHariEl =
+    document.getElementById("selisihHari");
+
+  selisihHariEl.textContent =
+    (selisih >= 0 ? "+" : "-") +
+    formatRupiah(Math.abs(selisih));
+
+  selisihHariEl.className =
+    "fig-value " +
+    (selisih >= 0 ? "pos" : "neg");
+
+  document.getElementById("pctHari").textContent =
+    pctHari.toFixed(1) + "%";
+
+  setRing(
+    document.getElementById("ringHari"),
+    pctHari
+  );
+
+  renderGrowthRate(
+    actualHari,
+    actualKemarin
+  );
 }
 
 /* =====================================================================
