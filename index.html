@@ -8,6 +8,150 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+
+/* =====================================================
+   PANEL TARGET BULAN
+   ===================================================== */
+
+.monthly-panel{
+  display:grid;
+  grid-template-columns:135px minmax(0, 1fr);
+  align-items:center;
+  gap:14px;
+  padding:16px 18px;
+}
+
+.monthly-panel .gauge-wrap{
+  width:135px;
+  height:105px;
+  transform:scale(.84);
+  transform-origin:center;
+}
+
+.monthly-panel .ring-figures{
+  width:100%;
+  min-width:0;
+}
+
+.monthly-panel .panel-head{
+  margin-bottom:5px !important;
+}
+
+.monthly-panel .panel-head h3{
+  font-size:11.5px;
+  line-height:1.3;
+}
+
+.monthly-panel .fig-row{
+  display:grid;
+  grid-template-columns:minmax(80px, 1fr) auto;
+  align-items:center;
+  gap:8px;
+  padding:5px 0;
+}
+
+.monthly-panel .fig-label{
+  min-width:0;
+  font-size:10px;
+  line-height:1.25;
+  color:var(--text-mid);
+}
+
+.monthly-value-group{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:2px;
+  min-width:0;
+}
+
+.monthly-panel .fig-value{
+  display:block;
+  font-size:11.5px;
+  line-height:1.2;
+  white-space:nowrap;
+  text-align:right;
+}
+
+.monthly-panel .pct-info{
+  display:block;
+  margin:0;
+  padding:2px 6px;
+  font-size:7.5px;
+  line-height:1.15;
+  white-space:nowrap;
+}
+
+@media (max-width:1200px) and (min-width:769px){
+  .monthly-panel{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+.monthly-panel .gauge-wrap{
+  width:160px;
+  transform:scale(.9);
+}
+
+.monthly-panel .ring-figures{
+  width:100%;
+}
+
+.monthly-panel .fig-row{
+  grid-template-columns:1fr auto;
+}
+
+.monthly-panel .fig-label{
+  font-size:11px;
+}
+
+.monthly-panel .fig-value{
+  font-size:12px;
+}
+
+.monthly-panel .pct-info{
+  font-size:8px;
+}
+}
+
+@media (max-width:768px){
+
+  .monthly-panel{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .monthly-panel .gauge-wrap{
+    width:160px;
+    transform:scale(.9);
+  }
+
+  .monthly-panel .ring-figures{
+    width:100%;
+  }
+
+  .monthly-panel .fig-row{
+    grid-template-columns:1fr auto;
+  }
+
+  .monthly-panel .fig-label{
+    font-size:11px;
+  }
+
+  .monthly-panel .fig-value{
+    font-size:12px;
+  }
+
+  .monthly-panel .pct-info{
+    font-size:8px;
+  }
+
+  /* CSS lainnya tetap di bawah */
+}
+
 /*Back Presentase*/
 .dept-persen{
   display:inline-block;
@@ -279,6 +423,49 @@
   .fig-value{ font-family:var(--font-num); font-weight:700; font-size:16px; color:var(--text-hi); }
   .fig-value.pos{ color:var(--green-400); }
   .fig-value.neg{ color:var(--red-400); }
+  
+  /* Angka pada panel target bulanan */
+.monthly-panel .fig-value{
+  font-size:13px;
+  white-space:nowrap;
+}
+
+/* Kolom nilai sebelah kanan */
+.monthly-panel .fig-row > span:last-child{
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  gap:3px;
+  min-width:0;
+}
+
+/* Persentase diletakkan di bawah nominal */
+.monthly-panel .pct-info{
+  display:block;
+  margin-top:0;
+  padding:2px 6px;
+  font-size:8px;
+  line-height:1.2;
+  white-space:nowrap;
+}
+
+/* Judul panel dibuat sedikit lebih kecil */
+.monthly-panel .panel-head h3{
+  font-size:12px;
+  line-height:1.3;
+}
+
+/* Label sebelah kiri */
+.monthly-panel .fig-label{
+  font-size:10.5px;
+  flex-shrink:0;
+}
+
+/* Beri jarak aman antara label dan angka */
+.monthly-panel .fig-row{
+  gap:8px;
+  align-items:center;
+}
 
   /* Top Sales — list gabungan dengan auto-scroll vertikal */
 /* Wadah daftar yang dapat bergulir otomatis */
@@ -387,7 +574,7 @@
 .growth-panel{
   display:flex;
   flex-direction:column;
-  justify-content:space-between;
+  justify-content:flex-start;
 }
 
 .growth-main{
@@ -395,6 +582,15 @@
   align-items:center;
   gap:16px;
   margin:8px 0 14px;
+}
+
+.growth-simple{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  width:100%;
 }
 
 .growth-icon{
@@ -918,27 +1114,73 @@
 
           </div>
           <div class="ring-figures">
-            <div class="panel-head" style="margin-bottom:8px;"><h3>Target &amp; Pencapaian Bulan Ini</h3></div>
-            <div class="fig-row">
-<span class="fig-label">Target Bulan</span>
-<span class="fig-value" id="targetBulan">Rp 0</span>
-            </div>
-            <div class="fig-row">
-<span class="fig-label">Pencapaian</span>
-<span>
-  <span class="fig-value pos" id="pencapaianBulan">Rp 0</span>
-  <small class="pct-info" id="pctPencapaianBulan">0%</small>
-</span>
-            </div>
-            <div class="fig-row">
-<span class="fig-label">Gap MTD</span>
-<span>
-  <span class="fig-value" id="gapMTD">Rp 0</span>
-  <small class="pct-info" id="pctGapMTD">0%</small>
-</span>
-            </div>
-            <div class="fig-row"><span class="fig-label">Sisa Target</span><span class="fig-value" id="sisaBulan">Rp 0</span></div>
-          </div>
+
+  <!-- JUDUL PANEL -->
+  <div class="panel-head" style="margin-bottom:8px;">
+    <h3>Target &amp; Pencapaian Bulan Ini</h3>
+  </div>
+
+  <!-- BARIS TARGET BULAN -->
+  <div class="fig-row">
+    <span class="fig-label">
+      Target Bulan
+    </span>
+
+    <span class="monthly-value-group">
+      <span class="fig-value" id="targetBulan">
+        Rp 0
+      </span>
+    </span>
+  </div>
+
+  <!-- BARIS PENCAPAIAN -->
+  <div class="fig-row">
+    <span class="fig-label">
+      Pencapaian
+    </span>
+
+    <span class="monthly-value-group">
+      <span class="fig-value pos" id="pencapaianBulan">
+        Rp 0
+      </span>
+
+      <small class="pct-info" id="pctPencapaianBulan">
+        0%
+      </small>
+    </span>
+  </div>
+
+  <!-- BARIS GAP MTD -->
+  <div class="fig-row">
+    <span class="fig-label">
+      Gap MTD
+    </span>
+
+    <span class="monthly-value-group">
+      <span class="fig-value" id="gapMTD">
+        Rp 0
+      </span>
+
+      <small class="pct-info" id="pctGapMTD">
+        0%
+      </small>
+    </span>
+  </div>
+
+  <!-- BARIS SISA TARGET -->
+  <div class="fig-row">
+    <span class="fig-label">
+      Sisa Target
+    </span>
+
+    <span class="monthly-value-group">
+      <span class="fig-value" id="sisaBulan">
+        Rp 0
+      </span>
+    </span>
+  </div>
+
+</div>
         </div>
 
         <div class="panel ring-panel daily-panel">
@@ -958,15 +1200,17 @@
           </div>
         </div>
 
-      <!-- PANEL GROWTH RATE -->
+<!-- PANEL GROWTH RATE MTD -->
 <div class="panel growth-panel">
   <div class="panel-head">
-    <h3>Growth Rate Hari Ini</h3>
-    <span class="badge" id="growthBadge">vs kemarin</span>
+    <h3>Growth Rate MTD</h3>
+    <span class="badge">vs tahun lalu</span>
   </div>
 
-  <div class="growth-main">
-    <div class="growth-icon neutral" id="growthIcon">→</div>
+  <div class="growth-simple">
+    <div class="growth-icon neutral" id="growthIcon">
+      →
+    </div>
 
     <div class="growth-data">
       <div class="growth-percentage neutral" id="growthRate">
@@ -974,31 +1218,8 @@
       </div>
 
       <div class="growth-caption" id="growthCaption">
-        Belum ada perbandingan
+        MTD bulan ini dibanding MTD tahun lalu
       </div>
-    </div>
-  </div>
-
-  <div class="growth-comparison">
-    <div class="growth-row">
-      <span class="growth-label">Actual Hari Ini</span>
-      <span class="growth-value" id="growthActualHari">
-        Rp 0
-      </span>
-    </div>
-
-    <div class="growth-row">
-      <span class="growth-label">Actual Kemarin</span>
-      <span class="growth-value" id="growthActualKemarin">
-        Rp 0
-      </span>
-    </div>
-
-    <div class="growth-row">
-      <span class="growth-label">Perubahan Nominal</span>
-      <span class="growth-value" id="growthNominal">
-        Rp 0
-      </span>
     </div>
   </div>
 </div>
@@ -1245,99 +1466,85 @@ function setRing(circleEl, pct){
   if(pct >= 100) circleEl.setAttribute("stroke", "#2ea86f");
 }
 
-function renderGrowthRate(actualHari, actualKemarin){
-  const rateEl = document.getElementById("growthRate");
-  const iconEl = document.getElementById("growthIcon");
-  const captionEl = document.getElementById("growthCaption");
-  const nominalEl = document.getElementById("growthNominal");
-  const badgeEl = document.getElementById("growthBadge");
+function renderGrowthRate(mtdBulanIni, mtdTahunLalu){
+  const rateEl =
+    document.getElementById("growthRate");
 
-  const actualHariEl =
-    document.getElementById("growthActualHari");
+  const iconEl =
+    document.getElementById("growthIcon");
 
-  const actualKemarinEl =
-    document.getElementById("growthActualKemarin");
+  const captionEl =
+    document.getElementById("growthCaption");
 
-  actualHariEl.textContent =
-    formatRupiah(actualHari);
-
-  actualKemarinEl.textContent =
-    formatRupiah(actualKemarin);
-
-  const perubahanNominal =
-    actualHari - actualKemarin;
-
-  let growthRate = 0;
-
-  if(actualKemarin > 0){
-    growthRate =
-      ((actualHari - actualKemarin) / actualKemarin) * 100;
+  if(!rateEl || !iconEl || !captionEl){
+    console.warn(
+      "Elemen panel Growth Rate tidak ditemukan."
+    );
+    return;
   }
 
-  rateEl.className = "growth-percentage";
-  iconEl.className = "growth-icon";
-  nominalEl.className = "growth-value";
+  rateEl.className =
+    "growth-percentage";
 
-  if(actualKemarin <= 0){
+  iconEl.className =
+    "growth-icon";
+
+  /*
+   * Jika data MTD tahun lalu kosong atau nol,
+   * persentase pertumbuhan tidak dapat dihitung.
+   */
+  if(mtdTahunLalu <= 0){
     rateEl.textContent = "–";
     rateEl.classList.add("neutral");
 
     iconEl.textContent = "→";
     iconEl.classList.add("neutral");
 
-    nominalEl.textContent =
-      formatRupiah(actualHari);
-
     captionEl.textContent =
-      "Data kemarin belum tersedia";
-
-    badgeEl.textContent =
-      "belum tersedia";
+      "Data MTD tahun lalu belum tersedia";
 
     return;
   }
 
-  rateEl.textContent =
-    (growthRate >= 0 ? "+" : "") +
-    growthRate.toFixed(1).replace(".", ",") +
-    "%";
+  const growthRate =
+    (
+      (mtdBulanIni - mtdTahunLalu) /
+      mtdTahunLalu
+    ) * 100;
 
-  nominalEl.textContent =
-    (perubahanNominal >= 0 ? "+" : "-") +
-    formatRupiah(Math.abs(perubahanNominal));
+  rateEl.textContent =
+    (growthRate > 0 ? "+" : "") +
+    growthRate
+      .toFixed(1)
+      .replace(".", ",") +
+    "%";
 
   if(growthRate > 0){
     rateEl.classList.add("positive");
     iconEl.classList.add("positive");
-    nominalEl.classList.add("positive");
 
     iconEl.textContent = "↑";
-    captionEl.textContent =
-      "Penjualan meningkat dari kemarin";
 
-    badgeEl.textContent =
-      "bertumbuh";
-  } else if(growthRate < 0){
+    captionEl.textContent =
+      "MTD bulan ini lebih tinggi dari tahun lalu";
+  }
+  else if(growthRate < 0){
     rateEl.classList.add("negative");
     iconEl.classList.add("negative");
-    nominalEl.classList.add("negative");
 
     iconEl.textContent = "↓";
-    captionEl.textContent =
-      "Penjualan menurun dari kemarin";
 
-    badgeEl.textContent =
-      "menurun";
-  } else {
+    captionEl.textContent =
+      "MTD bulan ini lebih rendah dari tahun lalu";
+  }
+  else{
     rateEl.classList.add("neutral");
     iconEl.classList.add("neutral");
 
     iconEl.textContent = "→";
-    captionEl.textContent =
-      "Penjualan sama dengan kemarin";
 
-    badgeEl.textContent =
-      "stabil";
+    captionEl.textContent =
+      "MTD bulan ini sama dengan tahun lalu";
   }
 }
 
@@ -1386,8 +1593,8 @@ function renderSummary(obj){
   const actualHari =
     toNumber(get("ActualHari"));
 
-  const actualKemarin =
-    toNumber(get("ActualKemarin"));
+const mtdTahunLalu =
+  toNumber(get("MTDTahunLalu"));
 
   const pctBulan =
     targetBulan > 0
@@ -1495,9 +1702,9 @@ function renderSummary(obj){
   );
 
   renderGrowthRate(
-    actualHari,
-    actualKemarin
-  );
+  pencapaianBulan,
+  mtdTahunLalu
+);
 }
 
 /* =====================================================================
