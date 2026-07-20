@@ -1794,6 +1794,20 @@ const CONFIG = {
   ]
 };
 
+/*
+ * Cache data terakhir dari Google Sheet, dipakai untuk
+ * render ulang saat pindah slide tanpa fetch ulang.
+ * HARUS dideklarasikan di sini (bukan hanya di-assign di
+ * dalam refreshData) supaya tidak ReferenceError jika ada
+ * kode yang membacanya sebelum fetch pertama selesai.
+ */
+let dashboardData = {
+  summary: [],
+  topSales: [],
+  topDept: [],
+  bestBulan: []
+};
+
 /* =====================================================================
    UTIL
    ===================================================================== */
@@ -3085,28 +3099,6 @@ function renderBestBulanan(rows){
 }
 
 /* =====================================================================
-   FETCH ALL DATA
-   ===================================================================== */
-async function refreshData(){
-  try{
-    const [summary, topSales, topDept, bestBulan] = await Promise.all([
-      fetchTab(CONFIG.TABS.summary),
-      fetchTab(CONFIG.TABS.topSales),
-      fetchTab(CONFIG.TABS.topDept),
-      fetchTab(CONFIG.TABS.bestBulan),
-    ]);
-    renderSummary(summary);
-    renderTopSales(topSales);
-    renderTopDept(topDept);
-    renderBestBulanan(bestBulan);
-    document.getElementById("lastSync").textContent = new Date().toLocaleTimeString("id-ID");
-  } catch(err){
-    console.error("Gagal mengambil data dari Google Sheet:", err);
-    document.getElementById("lastSync").textContent = "Gagal sinkron — cek Sheet ID / akses";
-  }
-}
-
-/* =====================================================================
    CLOCK
    ===================================================================== */
 function tickClock(){
@@ -3200,78 +3192,7 @@ function showSlide(idx){
 
 
 /* Klik navigasi slide */
-dots.forEach(dot => {function showSlide(idx){
-  if(
-    idx < 0 ||
-    idx >= slides.length ||
-    isChangingSlide
-  ){
-    return;
-  }
-
-  /*
-   * Jangan menjalankan perpindahan ke slide
-   * yang sedang aktif.
-   */
-  if(idx === currentSlide){
-    return;
-  }
-
-  isChangingSlide = true;
-
-  /*
-   * Hentikan seluruh auto-scroll dari slide lama.
-   */
-  stopAutoScroll("salesTrack");
-  stopAutoScroll("listDept");
-
-  stopAutoScroll("listBestSales");
-  stopAutoScroll("listBestFurniPro");
-  stopAutoScroll("listBestDept");
-
-  clearTimeout(slide2Timer);
-
-  slides.forEach((slide, index) => {
-    slide.classList.toggle(
-      "active",
-      index === idx
-    );
-  });
-
-  dots.forEach((dot, index) => {
-    dot.classList.toggle(
-      "active",
-      index === idx
-    );
-  });
-
-  currentSlide = idx;
-
-  /*
-   * Tunggu transisi CSS selesai sebelum
-   * menghitung tinggi daftar.
-   */
-  setTimeout(() => {
-    if(currentSlide === 0){
-      resetSlide1ScrollStatus();
-
-      refreshDataForCurrentSlide()
-        .finally(() => {
-          isChangingSlide = false;
-        });
-    }
-
-    if(currentSlide === 1){
-      resetSlide2ScrollStatus();
-
-      refreshDataForCurrentSlide()
-        .finally(() => {
-          isChangingSlide = false;
-        });
-    }
-  }, 700);
-}
-
+dots.forEach(dot => {
   dot.addEventListener("click", () => {
     const targetSlide = Number(dot.dataset.slide);
 
@@ -3296,50 +3217,6 @@ resetSlide1ScrollStatus();
 refreshData().finally(() => {
   isChangingSlide = false;
 });
-
-async function refreshData(){
-  try{
-    const [
-      summary,
-      topSales,
-      topDept,
-      bestBulan
-    ] = await Promise.all([
-      fetchTab(CONFIG.TABS.summary),
-      fetchTab(CONFIG.TABS.topSales),
-      fetchTab(CONFIG.TABS.topDept),
-      fetchTab(CONFIG.TABS.bestBulan)
-    ]);
-
-    /*
-     * Simpan hasil Google Sheet ke cache.
-     */
-    dashboardData = {
-      summary,
-      topSales,
-      topDept,
-      bestBulan
-    };
-
-    renderCurrentSlide();
-
-    document.getElementById(
-      "lastSync"
-    ).textContent =
-      new Date().toLocaleTimeString("id-ID");
-
-  } catch(err){
-    console.error(
-      "Gagal mengambil data dari Google Sheet:",
-      err
-    );
-
-    document.getElementById(
-      "lastSync"
-    ).textContent =
-      "Gagal sinkron — cek Sheet ID / akses";
-  }
-}
 
 async function refreshData(){
   try{
