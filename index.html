@@ -2477,7 +2477,18 @@ if(
 
   setTimeout(() => {
     if(currentSlide === 1){
-      showSlide(0);
+      /*
+       * Tarik ulang data dari Google Sheet setiap kali
+       * Slide 2 selesai satu putaran, sebelum balik ke
+       * Slide 1. Ini memastikan data selalu ter-update
+       * otomatis tiap siklus, tidak bergantung pada
+       * interval yang bisa tertunda oleh auto-scroll.
+       */
+      fetchDashboardData().finally(() => {
+        if(currentSlide === 1){
+          showSlide(0);
+        }
+      });
     }
   }, 1000);
 }
@@ -3218,7 +3229,7 @@ refreshData().finally(() => {
   isChangingSlide = false;
 });
 
-async function refreshData(){
+async function fetchDashboardData(){
   try{
     const [
       summary,
@@ -3242,8 +3253,6 @@ async function refreshData(){
       bestBulan
     };
 
-    renderCurrentSlide();
-
     document.getElementById(
       "lastSync"
     ).textContent =
@@ -3260,6 +3269,11 @@ async function refreshData(){
     ).textContent =
       "Gagal sinkron — cek Sheet ID / akses";
   }
+}
+
+async function refreshData(){
+  await fetchDashboardData();
+  renderCurrentSlide();
 }
 
 function renderCurrentSlide(){
